@@ -27,13 +27,25 @@ module "random-istance" {
   keypair = "${var.keypair}"
 }
 
-module "swarm_poiin" {
+module "cluster-swarm" {
   source = "github.com/entercloudsuite/terraform-modules//swarm"
   region = "${var.region}"
   manager_number = 0
   manager_flavor = "e3standard.x2"
   worker_number = 0
   worker_flavor = "e3standard.x1"
+  network_name = "${module.network.name}"
+  sec_group = ["${module.sec_public.sg_id}"]
+  keypair = "${openstack_compute_keypair_v2.keypair.name}"
+}
+
+module "cluster-k8s" {
+  source = "github.com/entercloudsuite/terraform-modules//kubernetes"
+  region = "${var.region}"
+  master_number = 0
+  master_flavor = "e3standard.x3"
+  kubelet_number = 0
+  kubelet_flavor = "e3standard.x2"
   network_name = "${module.network.name}"
   sec_group = ["${module.sec_public.sg_id}"]
   keypair = "${openstack_compute_keypair_v2.keypair.name}"
