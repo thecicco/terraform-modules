@@ -23,6 +23,11 @@ resource "openstack_networking_floatingip_v2" "ips" {
   pool = "${var.floating_ip_pool}"
 }
 
+resource "openstack_compute_servergroup_v2" "clusterSG" {
+  region = "${var.region}"
+  name     = "${var.name}"
+  policies = ["anti-affinity"]
+}
 
 resource "openstack_compute_instance_v2" "cluster" {
   region = "${var.region}"
@@ -33,6 +38,10 @@ resource "openstack_compute_instance_v2" "cluster" {
   key_pair = "${var.keypair}"
   security_groups = ["${var.sec_group}"]
   
+  scheduler_hints {
+    group = "${openstack_compute_servergroup_v2.clusterSG.id}"
+  }
+
   network {
     name = "${var.network_name}"
   }
@@ -41,13 +50,9 @@ resource "openstack_compute_instance_v2" "cluster" {
     role = "${var.role}"
     status = "${var.status}"
   }
-
-  // scheduler_hints {
-  //   group = "${openstack_compute_servergroup_v2.swarm_sg.id}"
-  // }
 }
 
-resource "openstack_compute_floatingip_associate_v2" "cluster_ips" {
+resource "openstack_compute_floatingip_associate_v2" "external_ip" {
   region = "${var.region}"
   count = "${var.external}"
   floating_ip = "${element(openstack_networking_floatingip_v2.ips.*.address,count.index)}"
