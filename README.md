@@ -51,7 +51,7 @@ module "network" {
 # Create ssh keypair
 module "keypair" {
   source = "github.com/entercloudsuite/terraform-modules//keypair"
-  ssh_pubkey = "../key.pub"
+  ssh_pubkey = "${var.ssh_pubkey}"
   region = "${var.region}"
 }
 
