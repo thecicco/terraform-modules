@@ -32,11 +32,11 @@ variable "ssh_pubkey" {
   default = "../id.rsa"
 }
 
-# Define a provider
-module "provider" {
-  source = "github.com/entercloudsuite/terraform-modules//provider"
+# Define provider
+provider "openstack" {
+  auth_url = "${var.auth_url}"
   tenant_name = "${var.tenant_name}"
-  user_name = "${var.username}"
+  user_name = "${var.user_name}"
   password = "${var.password}"
 }
 
