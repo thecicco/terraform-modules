@@ -71,6 +71,7 @@ module "web" {
   source = "github.com/entercloudsuite/terraform-modules//instance"
   name = "web"
   quantity = 1
+  external = 1
   flavor = "e3standard.x3"
   network_name = "${module.network.name}"
   sec_group = ["${module.ssh.sg_name}"]
@@ -122,7 +123,7 @@ terraform {
   backend "swift" {
     auth_url = "https://api.it-mil1.entercloudsuite.com/v2.0"
     password = "test"
-    path = "terraform_it-mil1_state"
+    container = "terraform_it-mil1_state"
     region_name = "it-mil1"
     tenant_name = "test@test.com"
     user_name = "test@test.com"
