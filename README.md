@@ -34,10 +34,10 @@ variable "ssh_pubkey" {
 
 # Define provider
 provider "openstack" {
-  auth_url = "${var.auth_url}"
-  tenant_name = "${var.tenant_name}"
-  user_name = "${var.user_name}"
-  password = "${var.password}"
+  auth_url = "auth_url"
+  tenant_name = "tenant_name"
+  user_name = "user_name"
+  password = "password"
 }
 
 # Create network
@@ -90,10 +90,11 @@ module "web" {
 * password
 * ssh_pubkey <- you can generate it with ssh-keygen command
 
-3. Adjust the `quantity` variable to a desirable value
-4. Run `terraform init` to allow terraform to get the requirements
-5. Run `terraform get` to allow terraform to obtain the modules
-6. Run `terraform plan` and `terraform apply` to provision the infrastructure
+3. compile provider "openstack" section, don't use the variables here
+4. Adjust the `quantity` variable to a desirable value
+5. Run `terraform init` to allow terraform to get the requirements
+6. Run `terraform get` to allow terraform to obtain the modules
+7. Run `terraform plan` and `terraform apply` to provision the infrastructure
 
 ### Create Volume
 
@@ -102,7 +103,7 @@ module "web" {
 ```
 # Create volume for each web instance
 module "volume-web" {
-  source = "./volume"
+  source = "github.com/entercloudsuite/terraform-modules//volume"
   name = "volume-web"
   size = "10"
   instance = "${module.web.instance}"
