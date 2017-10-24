@@ -45,3 +45,11 @@ resource "openstack_networking_router_interface_v2" "int-ext-interface-internal"
 output "name" {
   value = "${openstack_networking_network_v2.internal-network.name}"
 }
+
+output "id" {
+  value = "${openstack_networking_network_v2.internal-network.id}"
+}
+
+output "router_id" {
+  value = "${openstack_networking_router_v2.router.id}"
+}
