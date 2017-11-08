@@ -94,7 +94,7 @@ module "web" {
 4. Adjust the `quantity` variable to a desirable value
 5. Run `terraform init` to allow terraform to get the requirements
 6. Run `terraform get` to allow terraform to obtain the modules
-7. Run `terraform plan` and `terraform apply` to provision the infrastructure
+7. Run `terraform plan -out plan.tfplan` and `terraform apply plan.tfplan` to provision the infrastructure
 
 ### Create Volume
 
