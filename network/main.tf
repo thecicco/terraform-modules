@@ -16,6 +16,10 @@ resource "openstack_networking_subnet_v2" "internal-subnet" {
   cidr = "${var.internal-network-cidr}"
   ip_version = 4
   dns_nameservers = ["${var.dns1}","${var.dns2}"]
+  allocation_pools = {
+    start = "${var.internal-network-cidr-dhcp-start}"
+    end   = "${var.internal-network-cidr-dhcp-end}"
+  }
 }
 
 // if a router already exist do this 

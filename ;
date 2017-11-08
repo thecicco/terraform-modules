@@ -12,12 +12,10 @@ variable "internal-network-cidr" {
 }
 
 variable "internal-network-cidr-dhcp-start" {
-    default = "10.2.0.2"
-}
-
-variable "internal-network-cidr-dhcp-end" {
     default = "10.2.254.255"
 }
+        end   = "{{var.internal-network-cidr-dhcp-end}}"
+
 
 variable "router_id" {
   default = ""
