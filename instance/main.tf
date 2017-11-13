@@ -1,6 +1,6 @@
 data "openstack_networking_network_v2" "instance_network" {
-  region = "${var.network_name}"
-  name = "PublicNetwork"
+  region = "${var.region}"
+  name = "${var.network_name}"
 }
 
 output "instance" {
