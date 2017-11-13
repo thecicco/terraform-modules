@@ -11,7 +11,7 @@ resource "openstack_networking_port_v2" "port_public" {
 }
 
 resource "openstack_networking_floatingip_v2" "port_public_floating_ip" {
-  count = "${length(split(",", var.external_vips))}"
+  count = "${length(var.external_vips)}"
   pool = "PublicNetwork"
   port_id = "${openstack_networking_port_v2.port_public.id}"
   region = "${var.region}"
