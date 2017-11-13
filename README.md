@@ -42,7 +42,7 @@ provider "openstack" {
 
 # Create network
 module "network" {
-  source = "github.com/entercloudsuite/terraform-modules//network"
+  source = "github.com/entercloudsuite/terraform-modules//network?ref=2.0"
   region = "${var.region}"
   name = "general_network"
   router_id = ""
@@ -50,14 +50,14 @@ module "network" {
 
 # Create ssh keypair
 module "keypair" {
-  source = "github.com/entercloudsuite/terraform-modules//keypair"
+  source = "github.com/entercloudsuite/terraform-modules//keypair?ref=2.0"
   ssh_pubkey = "${var.ssh_pubkey}"
   region = "${var.region}"
 }
 
 # Create ssh firewall policy
 module "ssh" {
-  source = "github.com/entercloudsuite/terraform-modules//security"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.0"
   name = "ssh"
   region = "${var.region}"
   protocol = "tcp"
@@ -68,7 +68,7 @@ module "ssh" {
 
 # Create instance
 module "web" {
-  source = "github.com/entercloudsuite/terraform-modules//instance"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.0"
   name = "web"
   quantity = 1
   external = 1
@@ -103,7 +103,7 @@ module "web" {
 ```
 # Create volume for each web instance
 module "volume-web" {
-  source = "github.com/entercloudsuite/terraform-modules//volume"
+  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.0"
   name = "volume-web"
   size = "10"
   instance = "${module.web.instance}"
@@ -137,6 +137,19 @@ terraform {
 * tenant_name
 * username
 * password
+
+
+### External vip
+
+Expose vip with a floating ip
+
+```
+module "external_vip_web" {
+  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.0"
+  external_vips = ["10.2.255.1"]
+  subnet = "${module.network.subnet_id}"
+}
+```
 
 ## Note
 This project is still in development, more documentation and modules will be added in the future. Stay tuned!

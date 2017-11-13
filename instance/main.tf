@@ -1,3 +1,8 @@
+data "openstack_networking_network_v2" "instance_network" {
+  region = "${var.network_name}"
+  name = "PublicNetwork"
+}
+
 output "instance" {
     value = "${openstack_compute_instance_v2.cluster.*.id}"
 }
@@ -25,6 +30,18 @@ resource "openstack_compute_floatingip_associate_v2" "external_ip" {
   instance_id = "${element(openstack_compute_instance_v2.cluster.*.id,count.index)}"
 }
 
+resource "openstack_networking_port_v2" "port_local" {
+  count = "${var.quantity}"
+  name = "port_local-${count.index}"
+  network_id = "${data.openstack_networking_network_v2.instance_network.id}"
+  admin_state_up = "true"
+  region = "${var.region}"
+
+  allowed_address_pairs = {
+    ip_address = "${var.allowed_address_pairs}"
+  }
+}
+
 resource "openstack_compute_instance_v2" "cluster" {
   region = "${var.region}"
   count = "${var.quantity}"
@@ -39,7 +56,8 @@ resource "openstack_compute_instance_v2" "cluster" {
   }
 
   network {
-    name = "${var.network_name}"
+    uuid = "${data.openstack_networking_network_v2.instance_network.id}"
+    port = "${element(openstack_networking_port_v2.port_local.*.id, count.index)}"
   }
 
   metadata = "${var.tags}"

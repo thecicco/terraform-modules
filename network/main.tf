@@ -40,7 +40,7 @@ resource "openstack_networking_router_v2" "router" {
 }
 
 resource "openstack_networking_router_interface_v2" "int-ext-interface-internal" {
-    count = "${var.router_id != "" ? 0 : 1}"
+  count = "${var.router_id != "" ? 0 : 1}"
   region = "${var.region}"
   router_id = "${openstack_networking_router_v2.router.id}"
   subnet_id = "${openstack_networking_subnet_v2.internal-subnet.id}"
@@ -52,6 +52,10 @@ output "name" {
 
 output "id" {
   value = "${openstack_networking_network_v2.internal-network.id}"
+}
+
+output "subnet_id" {
+  value = "${openstack_networking_subnet_v2.internal-subnet.id}"
 }
 
 output "router_id" {

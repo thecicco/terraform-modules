@@ -7,6 +7,10 @@ variable "network_name" {
 variable "flavor" {
 }
 
+variable "allowed_address_pairs" {
+  default = "10.2.255.0/24"
+}
+
 variable "external" {
   default = 0
 }
