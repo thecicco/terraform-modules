@@ -5,7 +5,7 @@ resource "openstack_networking_port_v2" "port_public" {
   admin_state_up = "true"
   region = "${var.region}"
   fixed_ip = {
-    ip_address = "${element(var.external_vips)}"
+    ip_address = "${element(var.external_vips, count.index)}"
     subnet_id = "${var.subnet}" 
   }
 }
