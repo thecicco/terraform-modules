@@ -1,0 +1,16 @@
+#cloud-config
+
+manage_etc_hosts: localhost
+hostname: kube-master
+
+runcmd:
+  - sudo kubeadm init --pod-network-cidr=${pod-network-cidr} --apiserver-advertise-address=`ip addr sh dev $(ip r | grep default | awk '{ print $5 }') | grep "inet\b" | awk '{ print $2 }' | cut -d '/' -f 1` --service-cidr=${service-cidr} --apiserver-cert-extra-sans=${public-ip} --token ${kube-token}
+  - sudo mkdir -p /root/.kube
+  - sudo cp /etc/kubernetes/admin.conf /root/.kube/config
+  - sudo chown root:root /root/.kube/config
+  - sudo sysctl -w net.bridge.bridge-nf-call-iptables=1
+  - sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+  - sync
+
+final_message: "Kubernetes master is ready to use"
+

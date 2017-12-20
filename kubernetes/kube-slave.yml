@@ -1,0 +1,10 @@
+#cloud-config
+
+manage_etc_hosts: localhost
+hostname: ${hostname}
+
+runcmd:
+  - kubeadm join --token ${kube-token} --discovery-token-unsafe-skip-ca-verification ${master-ip}:6443
+
+final_message: "Kubernetes slave is ready to use"
+
