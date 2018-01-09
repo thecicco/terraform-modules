@@ -27,6 +27,10 @@ resource "openstack_compute_instance_v2" "kube-master" {
     uuid = "${var.network_uuid}"
   }
 
+  metadata = {
+    server_group = "${var.server_group}"
+  }
+
 }
 
 resource "openstack_compute_instance_v2" "kube-slave" {
@@ -47,6 +51,10 @@ resource "openstack_compute_instance_v2" "kube-slave" {
 
   network {
     uuid = "${var.network_uuid}"
+  }
+
+  metadata = {
+    server_group = "${var.server_group}"
   }
 
 }

@@ -45,3 +45,6 @@ variable "access_cidr" {
    default = "0.0.0.0/0"
 }
 
+variable "server_group" {
+   default = "KUBE"
+}
