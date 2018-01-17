@@ -39,7 +39,7 @@ variable "region" {
   default = "it-mil1"
 }
 
-variable "image" {
+variable "image_name" {
   default = "GNU/Linux Ubuntu Server 16.04 Xenial Xerus x64"
 }
 
