@@ -35,7 +35,7 @@ module "jenkins_internal_sg" {
 module "jenkins_master" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.0"
   name = "jenkins_master"
-  image_name = "${var.image_name}"
+  image = "${var.image}"
   quantity = 1
   external = 1
   flavor = "${var.master_flavor}"

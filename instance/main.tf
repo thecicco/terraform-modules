@@ -47,7 +47,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   count = "${var.quantity}"
   flavor_name = "${var.flavor}"
   name = "${var.name}-${count.index}"
-  image_name = "${var.image_name}"
+  image = "${var.image}"
   key_pair = "${var.keypair}"
   security_groups = ["${var.sec_group}"]
   
