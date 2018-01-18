@@ -53,3 +53,7 @@ variable "sec_group" {
 
 variable "keypair" {
 }
+
+variable "ignore_changes" {
+  default = false
+}

@@ -60,5 +60,9 @@ resource "openstack_compute_instance_v2" "cluster" {
     port = "${openstack_networking_port_v2.port_local.*.id[count.index]}"
   }
 
+  lifecycle {
+    ignore_changes = "${var.ignore_changes}"
+  }
+
   metadata = "${var.tags}"
 }
