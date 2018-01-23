@@ -53,3 +53,6 @@ variable "sec_group" {
 
 variable "keypair" {
 }
+
+variable "userdata" {
+}
