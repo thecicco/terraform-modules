@@ -58,6 +58,3 @@ variable "userdata" {
   default = ""
 }
 
-variable "ignore_changes" {
-  type = "list"
-}

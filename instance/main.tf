@@ -61,7 +61,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   }
 
   lifecycle {
-    ignore_changes = ["${var.ignore_changes}"]
+    ignore_changes = ["user_data"]
   }
 
   metadata = "${var.tags}"
