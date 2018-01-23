@@ -61,4 +61,5 @@ resource "openstack_compute_instance_v2" "cluster" {
   }
 
   metadata = "${var.tags}"
+  user_data = "${var.userdata}"
 }
