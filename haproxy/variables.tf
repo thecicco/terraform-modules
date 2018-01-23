@@ -1,5 +1,5 @@
-variable "master_flavor" {
-   default = "e3standard.x2"
+variable "flavor" {
+   default = "e3standard.x1"
 }
 
 variable "region" {}
