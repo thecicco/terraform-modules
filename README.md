@@ -74,7 +74,7 @@ module "web" {
   external = 1
   flavor = "e3standard.x3"
   network_name = "${module.network.name}"
-  sec_group = ["${module.ssh.sg_name}"]
+  sec_group = ["${module.ssh.sg_id}"]
   keypair = "${module.keypair.name}"
   tags = {
     "web" = ""
