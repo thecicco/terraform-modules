@@ -29,6 +29,7 @@ module "swarm_manager" {
   keypair = "${var.keyname}"
   userdata = "${data.template_file.docker-join.rendered}"
   tags = {
+    "swarm_manager" = ""
     "server_group" = "SWARM"
   }
 }
@@ -46,6 +47,7 @@ module "swarm_worker" {
   keypair = "${var.keyname}"
   userdata = "${data.template_file.docker-join.rendered}"
   tags = {
+    "swarm_worker" = ""
     "server_group" = "SWARM"
   }
 }
