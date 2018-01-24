@@ -36,9 +36,14 @@ resource "openstack_networking_port_v2" "port_local" {
   network_id = "${data.openstack_networking_network_v2.instance_network.id}"
   admin_state_up = "true"
   region = "${var.region}"
+  security_group_ids = ["${var.sec_group}"]
 
   allowed_address_pairs = {
     ip_address = "${var.allowed_address_pairs}"
+  }
+
+  lifecycle {
+    ignore_changes = ["allowed_address_pairs"]
   }
 }
 
@@ -49,7 +54,6 @@ resource "openstack_compute_instance_v2" "cluster" {
   name = "${var.name}-${count.index}"
   image_name = "${var.image}"
   key_pair = "${var.keypair}"
-  security_groups = ["${var.sec_group}"]
   
   scheduler_hints {
     group = "${openstack_compute_servergroup_v2.clusterSG.id}"
