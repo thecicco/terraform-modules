@@ -42,7 +42,7 @@ provider "openstack" {
 
 # Create network
 module "network" {
-  source = "github.com/entercloudsuite/terraform-modules//network?ref=2.2"
+  source = "github.com/entercloudsuite/terraform-modules//network?ref=2.4"
   region = "${var.region}"
   name = "general_network"
   router_id = ""
@@ -50,14 +50,14 @@ module "network" {
 
 # Create ssh keypair
 module "keypair" {
-  source = "github.com/entercloudsuite/terraform-modules//keypair?ref=2.2"
+  source = "github.com/entercloudsuite/terraform-modules//keypair?ref=2.4"
   ssh_pubkey = "${var.ssh_pubkey}"
   region = "${var.region}"
 }
 
 # Create ssh firewall policy
 module "ssh" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.2"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
   name = "ssh"
   region = "${var.region}"
   protocol = "tcp"
@@ -68,13 +68,13 @@ module "ssh" {
 
 # Create instance
 module "web" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.2"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
   name = "web"
   quantity = 1
   external = 1
   flavor = "e3standard.x3"
   network_name = "${module.network.name}"
-  sec_group = ["${module.ssh.sg_name}"]
+  sec_group = ["${module.ssh.sg_id}"]
   keypair = "${module.keypair.name}"
   tags = {
     "web" = ""
@@ -103,7 +103,7 @@ module "web" {
 ```
 # Create volume for each web instance
 module "volume-web" {
-  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.2"
+  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.4"
   name = "volume-web"
   size = "10"
   instance = "${module.web.instance}"
@@ -145,7 +145,7 @@ Expose vip with a floating ip
 
 ```
 module "external_vip_web" {
-  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.2"
+  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.4"
   external_vips = ["10.2.255.1","10.2.255.2"]
   network_id = "${module.network.id}"
   subnet = "${module.network.subnet_id}"
