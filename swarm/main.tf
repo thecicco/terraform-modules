@@ -25,7 +25,7 @@ module "swarm_manager" {
   external = 0
   flavor = "${var.manager_flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.swarm_internal_sg.sg_name}"]
+  sec_group = ["${module.swarm_internal_sg.sg_id}"]
   keypair = "${var.keyname}"
   userdata = "${data.template_file.docker-join.rendered}"
   tags = {
@@ -43,7 +43,7 @@ module "swarm_worker" {
   external = 0
   flavor = "${var.worker_flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.swarm_internal_sg.sg_name}"]
+  sec_group = ["${module.swarm_internal_sg.sg_id}"]
   keypair = "${var.keyname}"
   userdata = "${data.template_file.docker-join.rendered}"
   tags = {
