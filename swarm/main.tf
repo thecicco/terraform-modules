@@ -1,6 +1,6 @@
 # Allow everything inside internal network
 module "swarm_internal_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.1"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
   name = "swarm_internal_sg"
   region = "${var.region}"
   protocol = ""
@@ -18,7 +18,7 @@ data "template_file" "docker-join" {
 
 # Create Swarm manager instances
 module "swarm_manager" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.2"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
   name = "swarm_manager"
   image = "${var.image}"
   quantity = "${var.manager_count}"
@@ -36,7 +36,7 @@ module "swarm_manager" {
 
 # Create Swarm worker instance(s)
 module "swarm_worker" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.2"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
   name = "swarm_worker"
   image = "${var.image}"
   quantity = "${var.worker_count}"
