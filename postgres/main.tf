@@ -24,6 +24,7 @@ module "postgres_internal_sg" {
 module "postgres" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.0"
   name = "postgres"
+  region = "${var.region}"
   image = "${var.image}"
   quantity = 1
   external = 1
