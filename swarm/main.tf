@@ -20,6 +20,7 @@ data "template_file" "docker-join" {
 module "swarm_manager" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
   name = "swarm_manager"
+  region = "${var.region}"
   image = "${var.image}"
   quantity = "${var.manager_count}"
   external = 0
@@ -38,6 +39,7 @@ module "swarm_manager" {
 module "swarm_worker" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
   name = "swarm_worker"
+  region = "${var.region}"
   image = "${var.image}"
   quantity = "${var.worker_count}"
   external = 0
