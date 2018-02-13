@@ -35,6 +35,7 @@ module "haproxy_internal_sg" {
 module "haproxy" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.0"
   name = "haproxy"
+  region = "${var.region}"
   image = "${var.image}"
   quantity = 1
   external = 1
