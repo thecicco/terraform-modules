@@ -1,6 +1,6 @@
 # Create ssh firewall policy
 module "haproxy_ssh_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.0"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
   name = "haproxy_ssh_sg"
   region = "${var.region}"
   protocol = "tcp"
@@ -11,7 +11,7 @@ module "haproxy_ssh_sg" {
 
 # Create web firewall policy
 module "haproxy_web_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.0"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
   name = "haproxy_web_sg"
   region = "${var.region}"
   protocol = "tcp"
@@ -22,7 +22,7 @@ module "haproxy_web_sg" {
 
 # Create internal firewall policy
 module "haproxy_internal_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.0"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
   name = "haproxy_internal_sg"
   region = "${var.region}"
   protocol = "tcp"
@@ -33,7 +33,7 @@ module "haproxy_internal_sg" {
 
 # Create instance
 module "haproxy" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.0"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
   name = "haproxy"
   region = "${var.region}"
   image = "${var.image}"
@@ -41,7 +41,7 @@ module "haproxy" {
   external = 1
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.haproxy_web_sg.sg_name}","${module.haproxy_internal_sg.sg_name}","${module.haproxy_ssh_sg.sg_name}"]
+  sec_group = ["${module.haproxy_web_sg.sg_id}","${module.haproxy_internal_sg.sg_id}","${module.haproxy_ssh_sg.sg_id}"]
   keypair = "${var.keyname}"
   tags = {
     "server_group" = "HAPROXY"
