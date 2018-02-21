@@ -20,6 +20,10 @@ resource "openstack_networking_subnet_v2" "internal-subnet" {
     start = "${var.internal-network-cidr-dhcp-start}"
     end   = "${var.internal-network-cidr-dhcp-end}"
   }
+  host_routes = {
+    destination_cidr = "${var.internal-network-cidr-route-destination}"
+    next_hop = "${var.internal-network-cidr-route-nexthop}"
+  }
 }
 
 // if a router already exist do this 

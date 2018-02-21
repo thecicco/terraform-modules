@@ -22,3 +22,11 @@ variable "internal-network-cidr-dhcp-end" {
 variable "router_id" {
   default = ""
 }
+
+variable "internal-network-cidr-route-destination" = {
+  default = ""
+}
+
+variable "internal-network-cidr-route-nexthop" = {
+  default = ""
+}
