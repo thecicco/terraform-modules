@@ -23,10 +23,10 @@ variable "router_id" {
   default = ""
 }
 
-variable "internal-network-cidr-route-destination" = {
+variable "internal-network-cidr-route-destination" {
   default = ""
 }
 
-variable "internal-network-cidr-route-nexthop" = {
+variable "internal-network-cidr-route-nexthop" {
   default = ""
 }
