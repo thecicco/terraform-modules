@@ -7,6 +7,10 @@ output "instance" {
     value = "${openstack_compute_instance_v2.cluster.*.id}"
 }
 
+output "instance-address" {
+    value = "${openstack_compute_instance_v2.cluster.*.access_ip_v4}"
+}
+
 output "quantity" {
     value = "${var.quantity}"
 }
