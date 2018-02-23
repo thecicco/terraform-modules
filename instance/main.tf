@@ -56,7 +56,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   count = "${var.quantity}"
   flavor_name = "${var.flavor}"
   name = "${var.name}-${count.index}"
-  image = "${var.image}"
+  image_name = "${var.image}"
   key_pair = "${var.keypair}"
   
   scheduler_hints {
