@@ -1,6 +1,6 @@
 # Create ssh firewall policy
 module "postgres_ssh_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.5"
   name = "postgres_ssh_sg"
   region = "${var.region}"
   protocol = "tcp"
@@ -11,7 +11,7 @@ module "postgres_ssh_sg" {
 
 # Create internal firewall policy
 module "postgres_internal_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.5"
   name = "postgres_internal_sg"
   region = "${var.region}"
   protocol = "tcp"
@@ -22,12 +22,11 @@ module "postgres_internal_sg" {
 
 # Create instance
 module "postgres" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.5"
   name = "postgres"
   region = "${var.region}"
   image = "${var.image}"
   quantity = 1
-  external = 1
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
   sec_group = ["${module.postgres_internal_sg.sg_id}","${module.postgres_ssh_sg.sg_id}"]

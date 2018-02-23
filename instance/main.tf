@@ -17,7 +17,7 @@ output "quantity" {
 
 resource "openstack_networking_floatingip_v2" "ips" {
   region = "${var.region}"
-  count = "${var.external}"
+  count = "${var.external ? 1 : 0}"
   pool = "${var.floating_ip_pool}"
 }
 
@@ -29,7 +29,7 @@ resource "openstack_compute_servergroup_v2" "clusterSG" {
 
 resource "openstack_compute_floatingip_associate_v2" "external_ip" {
   region = "${var.region}"
-  count = "${var.external}"
+  count = "${var.external ? 1 : 0}"
   floating_ip = "${openstack_networking_floatingip_v2.ips.*.address[count.index]}"
   instance_id = "${openstack_compute_instance_v2.cluster.*.id[count.index]}"
 }

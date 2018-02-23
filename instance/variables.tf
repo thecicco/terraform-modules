@@ -12,7 +12,7 @@ variable "allowed_address_pairs" {
 }
 
 variable "external" {
-  default = 0
+  default = "false"
 }
 
 variable "quantity" {
