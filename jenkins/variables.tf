@@ -9,5 +9,3 @@ variable "keyname" {}
 variable "network_name" {}
 
 variable "image" {}
-
-variable "network-internal-cidr" {}
