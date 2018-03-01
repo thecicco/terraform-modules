@@ -1,10 +1,21 @@
+# Get network CIDR
+data "openstack_networking_network_v2" "network" {
+  name = "${var.network_name}"
+  region = "${var.region}"
+}
+
+data "openstack_networking_subnet_v2" "subnet" {
+  network_id = "${data.openstack_networking_network_v2.network.id}"
+  region = "${var.region}"
+}
+
 # Allow everything inside internal network
 module "swarm_internal_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
   name = "swarm_internal_sg"
   region = "${var.region}"
   protocol = ""
-  allow_remote = "${var.network-internal-cidr}"
+  allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
 }
 
 # Define cloud init
@@ -18,12 +29,13 @@ data "template_file" "docker-join" {
 
 # Create Swarm manager instances
 module "swarm_manager" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
   name = "swarm_manager"
   region = "${var.region}"
   image = "${var.image}"
   quantity = "${var.manager_count}"
-  external = 0
+  external = "false"
+  discovery = "false"
   flavor = "${var.manager_flavor}"
   network_name = "${var.network_name}"
   sec_group = ["${module.swarm_internal_sg.sg_id}"]
@@ -37,12 +49,13 @@ module "swarm_manager" {
 
 # Create Swarm worker instance(s)
 module "swarm_worker" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
   name = "swarm_worker"
   region = "${var.region}"
   image = "${var.image}"
   quantity = "${var.worker_count}"
-  external = 0
+  external = "false"
+  discovery = "true"
   flavor = "${var.worker_flavor}"
   network_name = "${var.network_name}"
   sec_group = ["${module.swarm_internal_sg.sg_id}"]
