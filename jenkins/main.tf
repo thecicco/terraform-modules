@@ -50,7 +50,7 @@ module "jenkins_master" {
   image = "${var.image}"
   quantity = 1
   external = "true"
-  discovery = "false"
+  discovery = "true"
   flavor = "${var.master_flavor}"
   network_name = "${var.network_name}"
   sec_group = ["${module.jenkins_web_sg.sg_id}","${module.jenkins_internal_sg.sg_id}","${module.jenkins_ssh_sg.sg_id}"]
