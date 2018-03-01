@@ -1,6 +1,6 @@
 # Create ssh firewall policy
 module "haproxy_ssh_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
   name = "haproxy_ssh_sg"
   region = "${var.region}"
   protocol = "tcp"
@@ -11,7 +11,7 @@ module "haproxy_ssh_sg" {
 
 # Create web firewall policy
 module "haproxy_web_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
   name = "haproxy_web_sg"
   region = "${var.region}"
   protocol = "tcp"
@@ -20,25 +20,37 @@ module "haproxy_web_sg" {
   allow_remote = "0.0.0.0/0"
 }
 
+# Get network CIDR
+data "openstack_networking_network_v2" "network" {
+  name = "${var.network_name}"
+  region = "${var.region}"
+}
+
+data "openstack_networking_subnet_v2" "subnet" {
+  network_id = "${data.openstack_networking_network_v2.network.id}"
+  region = "${var.region}"
+}
+
 # Create internal firewall policy
 module "haproxy_internal_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
   name = "haproxy_internal_sg"
   region = "${var.region}"
   protocol = "tcp"
   port_range_min = 1
   port_range_max = 65535
-  allow_remote = "${var.network-internal-cidr}"
+  allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
 }
 
 # Create instance
 module "haproxy" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
   name = "haproxy"
   region = "${var.region}"
   image = "${var.image}"
   quantity = 1
-  external = 1
+  external = "true"
+  discovery = "true"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
   sec_group = ["${module.haproxy_web_sg.sg_id}","${module.haproxy_internal_sg.sg_id}","${module.haproxy_ssh_sg.sg_id}"]
