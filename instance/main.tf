@@ -13,7 +13,6 @@ output "instance-address" {
 
 output "public-instance-address" {
     value = "${openstack_networking_floatingip_v2.ips.*.address}"
-    depends_on = "${openstack_networking_floatingip_v2.ips}"
 }
 
 output "quantity" {
