@@ -1,61 +1,98 @@
-resource "openstack_networking_floatingip_v2" "kube-master" {
+# Network data
+data "openstack_networking_network_v2" "network" {
+  name = "${var.network_name}"
   region = "${var.region}"
-  count = 1
-  pool = "${var.floating_ip_pool}"
 }
 
-resource "openstack_compute_floatingip_associate_v2" "fip_kubemaster" {
+data "openstack_networking_subnet_v2" "subnet" {
+  network_id = "${data.openstack_networking_network_v2.network.id}"
   region = "${var.region}"
-  floating_ip = "${openstack_networking_floatingip_v2.kube-master.address}"
-  instance_id = "${openstack_compute_instance_v2.kube-master.id}"
 }
 
-resource "openstack_compute_instance_v2" "kube-master" {
-  region	  = "${var.region}"
-  name            = "kube-master"
-  image_name      = "${var.image}"
-  flavor_name     = "${var.master_flavor}"
-  key_pair        = "${var.keyname}"
-  lifecycle {
-    ignore_changes = ["user_data"]
-  }
-
-  security_groups = ["${openstack_compute_secgroup_v2.kube-master.name}"]
-  user_data       = "${data.template_file.cloud-config-master.rendered}"
-
-  network {
-    uuid = "${var.network_uuid}"
-  }
-
-  metadata = {
-    server_group = "${var.server_group}"
-  }
-
+# Security groups
+module "kubernetes-ssh_sg" {
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  name = "kubernetes-ssh"
+  region = "${var.region}"
+  protocol = "tcp"
+  port_range_min = 22
+  port_range_max = 22
+  allow_remote = "${var.access-cidr}"
 }
 
-resource "openstack_compute_instance_v2" "kube-slave" {
-  region          = "${var.region}"
-  name            = "kube-slave-${count.index+1}"
-  count           = "${var.slave_count}"
-  image_name      = "${var.image}"
-  flavor_name     = "${var.master_flavor}"
-  key_pair        = "${var.keyname}"
-  lifecycle {
-    ignore_changes = ["user_data"]
-  }
-
-  depends_on      = ["openstack_compute_instance_v2.kube-master"]
-
-  security_groups = ["${openstack_compute_secgroup_v2.kube-slave.name}"]
-  user_data       = "${element(data.template_file.cloud-config-slave.*.rendered, count.index)}"
-
-  network {
-    uuid = "${var.network_uuid}"
-  }
-
-  metadata = {
-    server_group = "${var.server_group}"
-  }
-
+module "kubernetes-all-tcp-from-internal_sg" {
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  name = "kubernetes-ssh"
+  region = "${var.region}"
+  protocol = "tcp"
+  port_range_min = 1
+  port_range_max = 65535
+  allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
 }
 
+module "kubernetes-all-udp-from-internal_sg" {
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  name = "kubernetes-ssh"
+  region = "${var.region}"
+  protocol = "udp"
+  port_range_min = 1
+  port_range_max = 65535
+  allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
+}
+
+# Cloud init scripts
+data "template_file" "cloud-config-master" {
+  template = "${file("${path.module}/kube-master.yml")}"
+  vars {
+    public-ip  = "${module.kubernetes_master.public-instance-address[0]}"
+    kube-token = "${var.kube-token}"
+    pod-network-cidr = "${var.pod-network-cidr}"
+    service-cidr = "${var.service-cidr}"
+  }
+}
+
+data "template_file" "cloud-config-worker" {
+  template = "${file("${path.module}/kube-worker.yml")}"
+  vars {
+    master-ip  = "${module.kubernetes_master.instance-address[0]}"
+    kube-token = "${var.kube-token}"
+  }
+}
+
+# Kubernetes master node
+module "kubernetes_master" {
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
+  name = "kubernetes-master"
+  region = "${var.region}"
+  image = "${var.image}"
+  quantity = 1
+  external = "true"
+  discovery = "true"
+  flavor = "${var.master_flavor}"
+  network_name = "${var.network_name}"
+  sec_group = ["${module.kubernetes-ssh_sg.sg_id}","${module.kubernetes-all-tcp-from-internal_sg.sg_id}","${module.kubernetes-all-udp-from-internal_sg.sg_id}"]
+  keypair = "${var.keyname}"
+  userdata = "${data.template_file.cloud-config-master.rendered}"
+  tags = {
+    "server_group" = "KUBERNETES"
+  }
+}
+
+# Kubernetes worker nodes
+module "kubernetes_workers" {
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
+  name = "kubernetes-workers"
+  region = "${var.region}"
+  image = "${var.image}"
+  quantity = "${var.worker_count}"
+  external = "false"
+  discovery = "true"
+  flavor = "${var.worker_flavor}"
+  network_name = "${var.network_name}"
+  sec_group = ["${module.kubernetes-all-tcp-from-internal_sg.sg_id}","${module.kubernetes-all-udp-from-internal_sg.sg_id}"]
+  keypair = "${var.keyname}"
+  userdata = "${data.template_file.cloud-config-worker.rendered}"
+  tags = {
+    "server_group" = "KUBERNETES"
+  }
+}
