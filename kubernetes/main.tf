@@ -22,7 +22,7 @@ module "kubernetes-ssh_sg" {
 
 module "kubernetes-all-tcp-from-internal_sg" {
   source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
-  name = "kubernetes-ssh"
+  name = "kubernetes-all-tcp-from-internal"
   region = "${var.region}"
   protocol = "tcp"
   port_range_min = 1
@@ -32,7 +32,7 @@ module "kubernetes-all-tcp-from-internal_sg" {
 
 module "kubernetes-all-udp-from-internal_sg" {
   source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
-  name = "kubernetes-ssh"
+  name = "kubernetes-all-udp-from-internal"
   region = "${var.region}"
   protocol = "udp"
   port_range_min = 1
