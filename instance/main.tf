@@ -11,6 +11,11 @@ output "instance-address" {
     value = "${openstack_compute_instance_v2.cluster.*.access_ip_v4}"
 }
 
+output "public-instance-address" {
+    value = "${openstack_networking_floatingip_v2.ips.*.address}"
+    depends_on = "${openstack_networking_floatingip_v2.ips}"
+}
+
 output "quantity" {
     value = "${var.quantity}"
 }
