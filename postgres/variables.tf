@@ -9,3 +9,7 @@ variable "keyname" {}
 variable "network_name" {}
 
 variable "image" {}
+
+variable "slave_count" {
+    default = 0
+}

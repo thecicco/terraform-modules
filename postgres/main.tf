@@ -31,7 +31,7 @@ module "postgres_internal_sg" {
   allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
 }
 
-# Create instance
+# Create instances
 module "postgres" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
   name = "postgres"
@@ -46,5 +46,22 @@ module "postgres" {
   keypair = "${var.keyname}"
   tags = {
     "server_group" = "POSTGRES"
+  }
+}
+
+module "postgres_slaves" {
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
+  name = "postgres-slaves"
+  region = "${var.region}"
+  image = "${var.image}"
+  quantity = "${var.slave_count}
+  external = "false"
+  discovery = "true"
+  flavor = "${var.flavor}"
+  network_name = "${var.network_name}"
+  sec_group = ["${module.postgres_internal_sg.sg_id}","${module.postgres_ssh_sg.sg_id}"]
+  keypair = "${var.keyname}"
+  tags = {
+    "server_group" = "POSTGRES-SLAVES"
   }
 }
