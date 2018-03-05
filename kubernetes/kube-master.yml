@@ -4,7 +4,7 @@ manage_etc_hosts: localhost
 hostname: kube-master
 
 runcmd:
-  - sudo kubeadm init --pod-network-cidr=${pod-network-cidr} --apiserver-advertise-address=`ip addr sh dev $(ip r | grep default | awk '{ print $5 }') | grep "inet\b" | awk '{ print $2 }' | cut -d '/' -f 1` --service-cidr=${service-cidr} --apiserver-cert-extra-sans=${public-ip} --token ${kube-token} --token-ttl 0
+  - sudo kubeadm init --apiserver-advertise-address=`ip addr sh dev $(ip r | grep default | awk '{ print $5 }') | grep "inet\b" | awk '{ print $2 }' | cut -d '/' -f 1` --apiserver-cert-extra-sans=${public-ip} --token ${kube-token} --token-ttl 0
   - sudo mkdir -p /root/.kube
   - sudo cp /etc/kubernetes/admin.conf /root/.kube/config
   - sudo chown root:root /root/.kube/config

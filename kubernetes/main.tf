@@ -46,8 +46,6 @@ data "template_file" "cloud-config-master" {
   vars {
     public-ip  = "${module.kubernetes_master.public-instance-address[0]}"
     kube-token = "${var.kube-token}"
-    pod-network-cidr = "${var.pod-network-cidr}"
-    service-cidr = "${var.service-cidr}"
   }
 }
 

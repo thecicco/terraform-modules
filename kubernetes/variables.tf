@@ -18,14 +18,6 @@ variable "floating_ip_pool" {
    default = "PublicNetwork"
 }
 
-variable "pod-network-cidr" {
-   default = "192.168.0.0/16"
-}
-
-variable "service-cidr" {
-   default = "172.20.0.0/16"
-}
-
 variable "kube-token" {
    default = "9e5124.a44b452adf9f331e"
 }
