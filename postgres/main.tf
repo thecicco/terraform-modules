@@ -53,7 +53,7 @@ module "postgres_slaves" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
   name = "postgres-slaves"
   region = "${var.region}"
-  image = "${var.image}"
+  image = "${var.image_slave}"
   quantity = "${var.slave_count}"
   external = "false"
   discovery = "true"
