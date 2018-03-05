@@ -54,7 +54,7 @@ module "postgres_slaves" {
   name = "postgres-slaves"
   region = "${var.region}"
   image = "${var.image}"
-  quantity = "${var.slave_count}
+  quantity = "${var.slave_count}"
   external = "false"
   discovery = "true"
   flavor = "${var.flavor}"
