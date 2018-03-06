@@ -1,7 +1,6 @@
 #cloud-config
 
 manage_etc_hosts: localhost
-hostname: kube-master
 
 runcmd:
   - sudo kubeadm init --apiserver-advertise-address=`ip addr sh dev $(ip r | grep default | awk '{ print $5 }') | grep "inet\b" | awk '{ print $2 }' | cut -d '/' -f 1` --apiserver-cert-extra-sans=${public-ip} --token ${kube-token} --token-ttl 0
