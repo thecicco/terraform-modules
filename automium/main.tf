@@ -36,7 +36,6 @@ module "bastion" {
   image = "${var.image}"
   quantity = 1
   external = "true"
-  discovery = "true"
   flavor = "${var.flavor}"
   network_name = "${module.network.name}"
   sec_group = ["${module.bastion_mngmt_sg.sg_id}","${module.bastion_internal_sg.sg_id}"]
