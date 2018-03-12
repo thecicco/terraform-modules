@@ -42,7 +42,7 @@ provider "openstack" {
 
 # Create network
 module "network" {
-  source = "github.com/entercloudsuite/terraform-modules//network?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//network?ref=2.6"
   region = "${var.region}"
   name = "general_network"
   router_id = ""
@@ -50,14 +50,14 @@ module "network" {
 
 # Create ssh keypair
 module "keypair" {
-  source = "github.com/entercloudsuite/terraform-modules//keypair?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//keypair?ref=2.6"
   ssh_pubkey = "${var.ssh_pubkey}"
   region = "${var.region}"
 }
 
 # Create ssh firewall policy
 module "ssh" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
   name = "ssh"
   region = "${var.region}"
   protocol = "tcp"
@@ -68,17 +68,16 @@ module "ssh" {
 
 # Create instance
 module "web" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
   name = "web"
   quantity = 1
-  external = 1
+  external = "true"
   flavor = "e3standard.x3"
   network_name = "${module.network.name}"
   sec_group = ["${module.ssh.sg_id}"]
   keypair = "${module.keypair.name}"
   tags = {
-    "web" = ""
-    "nginx" = ""
+    "server_group" = "WEB"
   }
 }
 ```
