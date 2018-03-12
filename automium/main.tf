@@ -44,3 +44,7 @@ module "bastion" {
     "server_group" = "BASTION"
   }
 }
+
+output "bastion_ip" {
+  value = "${module.bastion.public-instance-address[0]}"
+}
