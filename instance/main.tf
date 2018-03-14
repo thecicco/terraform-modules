@@ -85,4 +85,5 @@ resource "consul_service" "service" {
   service_id = "${var.name}-${count.index}"
   name = "${var.name}"
   address = "${openstack_compute_instance_v2.cluster.*.access_ip_v4[count.index]}"
+  tags = ["${count.index}"]
 }
