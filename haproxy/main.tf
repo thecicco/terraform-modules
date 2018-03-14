@@ -71,7 +71,7 @@ module "haproxy" {
   discovery = "true"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.haproxy_http_sg.sg_id}","${module.haproxy_internal_sg.sg_id}","${module.haproxy_https_sg.sg_id}","${module.haproxy_multicast_sg.sg_id}"]
+  sec_group = ["${module.haproxy_http_sg.sg_id}","${module.haproxy_https_sg.sg_id}","${module.haproxy_internal_sg.sg_id}","${module.haproxy_stats_sg.sg_id}","${module.haproxy_multicast_sg.sg_id}"]
   keypair = "${var.keyname}"
   tags = {
     "server_group" = "HAPROXY"
