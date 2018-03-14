@@ -1,25 +1,3 @@
-# Create ssh firewall policy
-module "haproxy_ssh_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
-  name = "haproxy_ssh_sg"
-  region = "${var.region}"
-  protocol = "tcp"
-  port_range_min = 22
-  port_range_max = 22
-  allow_remote = "0.0.0.0/0"
-}
-
-# Create web firewall policy
-module "haproxy_web_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
-  name = "haproxy_web_sg"
-  region = "${var.region}"
-  protocol = "tcp"
-  port_range_min = 80
-  port_range_max = 80
-  allow_remote = "0.0.0.0/0"
-}
-
 # Get network CIDR
 data "openstack_networking_network_v2" "network" {
   name = "${var.network_name}"
@@ -31,15 +9,55 @@ data "openstack_networking_subnet_v2" "subnet" {
   region = "${var.region}"
 }
 
+# Create http firewall policy
+module "haproxy_http_sg" {
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  name = "haproxy_http_sg"
+  region = "${var.region}"
+  protocol = "tcp"
+  port_range_min = 80
+  port_range_max = 80
+  allow_remote = "0.0.0.0/0"
+}
+
+# Create https firewall policy
+module "haproxy_https_sg" {
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  name = "haproxy_https_sg"
+  region = "${var.region}"
+  protocol = "tcp"
+  port_range_min = 443
+  port_range_max = 443
+  allow_remote = "0.0.0.0/0"
+}
+
+# Create haproxy-stats firewall policy
+module "haproxy_stats_sg" {
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  name = "haproxy_stats_sg"
+  region = "${var.region}"
+  protocol = "tcp"
+  port_range_min = 8282
+  port_range_max = 8282
+  allow_remote = "0.0.0.0/0"
+}
+
 # Create internal firewall policy
 module "haproxy_internal_sg" {
   source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
   name = "haproxy_internal_sg"
   region = "${var.region}"
-  protocol = "tcp"
-  port_range_min = 1
-  port_range_max = 65535
+  protocol = ""
   allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
+}
+
+# Create multicast firewall policy
+module "haproxy_multicast_sg" {
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  name = "haproxy_multicast_sg"
+  region = "${var.region}"
+  protocol = ""
+  allow_remote = "224.0.0.18/32"
 }
 
 # Create instance
@@ -48,12 +66,12 @@ module "haproxy" {
   name = "haproxy"
   region = "${var.region}"
   image = "${var.image}"
-  quantity = 1
+  quantity = "${var.quantity}"
   external = "true"
   discovery = "true"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.haproxy_web_sg.sg_id}","${module.haproxy_internal_sg.sg_id}","${module.haproxy_ssh_sg.sg_id}"]
+  sec_group = ["${module.haproxy_http_sg.sg_id}","${module.haproxy_internal_sg.sg_id}","${module.haproxy_https_sg.sg_id}","${module.haproxy_multicast_sg.sg_id}"]
   keypair = "${var.keyname}"
   tags = {
     "server_group" = "HAPROXY"

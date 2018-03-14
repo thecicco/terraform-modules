@@ -9,3 +9,7 @@ variable "keyname" {}
 variable "network_name" {}
 
 variable "image" {}
+
+variable "quantity" {
+   default = 1
+}
