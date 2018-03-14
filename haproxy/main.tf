@@ -62,7 +62,7 @@ module "haproxy_multicast_sg" {
 
 # Create instance
 module "haproxy" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
+  source = "github.com/entercloudsuite/terraform-modules//instance"
   name = "haproxy"
   region = "${var.region}"
   image = "${var.image}"
