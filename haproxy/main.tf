@@ -73,5 +73,5 @@ module "haproxy" {
   network_name = "${var.network_name}"
   sec_group = ["${module.haproxy_http_sg.sg_id}","${module.haproxy_https_sg.sg_id}","${module.haproxy_internal_sg.sg_id}","${module.haproxy_stats_sg.sg_id}","${module.haproxy_multicast_sg.sg_id}"]
   keypair = "${var.keyname}"
-  tags = "${var.tag}"
+  tags = "${var.tags}"
 }
