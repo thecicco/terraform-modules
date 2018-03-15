@@ -13,3 +13,9 @@ variable "image" {}
 variable "quantity" {
    default = 1
 }
+
+variable "tag" {
+   default = {
+    "server_group" = "HAPROXY"
+  }
+}
