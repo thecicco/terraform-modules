@@ -61,9 +61,6 @@ module "swarm_worker" {
   sec_group = ["${module.swarm_internal_sg.sg_id}"]
   keypair = "${var.keyname}"
   userdata = "${data.template_file.docker-join.rendered}"
-  tags = {
-    "swarm_worker" = ""
-    "server_group" = "SWARM"
-  }
+  tags = "${var.tags}"
 }
 
