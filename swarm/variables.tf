@@ -26,8 +26,17 @@ variable "network_name" {}
 
 variable "image" {}
 
-variable "tags" = {
+variable "tags_manager" = {
    default = {
+    "icinga2_client" = ""
+    "swarm_manager" = ""
+    "server_group" = "SWARM"
+  }
+}
+
+variable "tags_worker" = {
+   default = {
+    "icinga2_client" = ""
     "swarm_worker" = ""
     "server_group" = "SWARM"
   }
