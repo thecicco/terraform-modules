@@ -14,7 +14,7 @@ variable "quantity" {
    default = 1
 }
 
-variable "tag" {
+variable "tags" {
    default = {
     "server_group" = "HAPROXY"
   }
