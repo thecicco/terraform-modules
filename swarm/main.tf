@@ -41,10 +41,7 @@ module "swarm_manager" {
   sec_group = ["${module.swarm_internal_sg.sg_id}"]
   keypair = "${var.keyname}"
   userdata = "${data.template_file.docker-join.rendered}"
-  tags = {
-    "swarm_manager" = ""
-    "server_group" = "SWARM"
-  }
+  tags = "${var.tags_worker}"
 }
 
 # Create Swarm worker instance(s)
