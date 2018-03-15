@@ -26,3 +26,9 @@ variable "network_name" {}
 
 variable "image" {}
 
+variable "tags" = {
+   default = {
+    "swarm_worker" = ""
+    "server_group" = "SWARM"
+  }
+}
