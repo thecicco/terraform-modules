@@ -84,6 +84,7 @@ resource "consul_service" "service" {
   count = "${var.discovery ? var.quantity : 0}"
   service_id = "${var.name}-${count.index}"
   name = "${var.name}"
+  port = "${var.discovery_port}"
   address = "${openstack_compute_instance_v2.cluster.*.access_ip_v4[count.index]}"
   tags = ["${count.index}"]
 }

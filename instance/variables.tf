@@ -62,3 +62,6 @@ variable "userdata" {
   default = ""
 }
 
+variable "discovery_port" {
+  default = 0
+}
