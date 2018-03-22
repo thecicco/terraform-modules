@@ -10,9 +10,9 @@ write_files:
         advertiseAddress: ens3
       etcd:
         endpoints:
-        - 0.etcd-server.service.automium.consul
-        - 1.etcd-server.service.automium.consul
-        - 2.etcd-server.service.automium.consul
+        - http://0.etcd-server.service.automium.consul:2379
+        - http://1.etcd-server.service.automium.consul:2379
+        - http://2.etcd-server.service.automium.consul:2379
       token: ${kube-token}
       tokenTTL: 0s
       apiServerCertSANs:
