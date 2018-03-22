@@ -48,6 +48,7 @@ data "template_file" "etcd-cloudinit" {
 module "etcd-server" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
   name = "etcd-server"
+  image = "${var.image}"
   quantity = 3
   external = "false"
   discovery = "true"
