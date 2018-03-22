@@ -21,7 +21,7 @@ write_files:
     permission: 0600
 
 runcmd:
-  - sudo kubeadm init --config 
+  - sudo kubeadm init --config /root/kubeadm-config.yml
   - sudo rm /root/kubeadm-config.yml
   - sudo mkdir -p /root/.kube
   - sudo cp /etc/kubernetes/admin.conf /root/.kube/config
