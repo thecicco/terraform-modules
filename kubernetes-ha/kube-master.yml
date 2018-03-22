@@ -13,7 +13,7 @@ write_files:
         - 0.etcd-server.service.automium.consul
         - 1.etcd-server.service.automium.consul
         - 2.etcd-server.service.automium.consul
-      token: ${kube_token}
+      token: ${kube-token}
       tokenTTL: 0
       apiServerCertSANs:
       - ${public-ip}
