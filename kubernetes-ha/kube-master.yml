@@ -14,7 +14,7 @@ write_files:
         - 1.etcd-server.service.automium.consul
         - 2.etcd-server.service.automium.consul
       token: ${kube-token}
-      tokenTTL: 0
+      tokenTTL: 0s
       apiServerCertSANs:
       - ${public-ip}
     path: /root/kubeadm-config.yml
@@ -22,7 +22,6 @@ write_files:
 
 runcmd:
   - sudo kubeadm init --config /root/kubeadm-config.yml
-  - sudo rm /root/kubeadm-config.yml
   - sudo mkdir -p /root/.kube
   - sudo cp /etc/kubernetes/admin.conf /root/.kube/config
   - sudo chown root:root /root/.kube/config
