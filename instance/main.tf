@@ -80,11 +80,16 @@ resource "openstack_compute_instance_v2" "cluster" {
   user_data = "${var.userdata}"
 }
 
-resource "consul_service" "service" {
+resource "consul_catalog_entry" "service" {
   count = "${var.discovery ? var.quantity : 0}"
-  service_id = "${var.name}-${count.index}"
-  name = "${var.name}"
-  port = "${var.discovery_port}"
   address = "${openstack_compute_instance_v2.cluster.*.access_ip_v4[count.index]}"
-  tags = ["${count.index}"]
+  node    = "${var.name}-${count.index}"
+
+  service = {
+    address = "${openstack_compute_instance_v2.cluster.*.access_ip_v4[count.index]}"
+    id      = "${var.name}-${count.index}"
+    name    = "${var.name}"
+    port    = "${var.discovery_port}"
+    tags    = ["${count.index}"]
+  }
 }
