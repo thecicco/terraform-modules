@@ -55,7 +55,5 @@ module "prometheus" {
   network_name = "${var.network_name}"
   sec_group = ["${module.prometheus_web_sg.sg_id}","${module.prometheus_internal_sg.sg_id}","${module.prometheus_ssh_sg.sg_id}"]
   keypair = "${var.keyname}"
-  tags = {
-    "server_group" = "PROMETHEUS"
-  }
+  tags = "${var.tags}"
 }
