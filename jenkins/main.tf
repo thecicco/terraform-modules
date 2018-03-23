@@ -55,7 +55,5 @@ module "jenkins_master" {
   network_name = "${var.network_name}"
   sec_group = ["${module.jenkins_web_sg.sg_id}","${module.jenkins_internal_sg.sg_id}","${module.jenkins_ssh_sg.sg_id}"]
   keypair = "${var.keyname}"
-  tags = {
-    "server_group" = "JENKINS"
-  }
+  tags = "${var.tags}"
 }
