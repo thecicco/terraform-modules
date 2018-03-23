@@ -9,3 +9,9 @@ variable "keyname" {}
 variable "network_name" {}
 
 variable "image" {}
+
+variable "tags" {
+   default = {
+    "server_group" = "PROMETHEUS"
+  }
+}
