@@ -77,6 +77,7 @@ module "web" {
   sec_group = ["${module.ssh.sg_id}"]
   keypair = "${module.keypair.name}"
   tags = {
+    "icinga2_client" = "" # If you integrate with icinga2 role
     "server_group" = "WEB"
   }
 }
@@ -102,7 +103,8 @@ module "web" {
 ```
 # Create volume for each web instance
 module "volume-web" {
-  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.4"
+  source = "github.com/entercloudsuite/terraform-modules//volume"
+  device = "/dev/vdb" # Or not include to have an automatic mount point
   name = "volume-web"
   size = "10"
   instance = "${module.web.instance}"
