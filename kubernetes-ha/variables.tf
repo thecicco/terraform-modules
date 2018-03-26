@@ -18,10 +18,6 @@ variable "floating_ip_pool" {
    default = "PublicNetwork"
 }
 
-variable "kube-token" {
-   default = "9e5124.a44b452adf9f331e"
-}
-
 variable "access-cidr" {
    default = "0.0.0.0/0"
 }
@@ -31,3 +27,13 @@ variable "keyname" {}
 variable "network_name" {}
 
 variable "image" {}
+
+variable "cloud_os_api_url" {}
+
+variable "cloud_os_tenant_name" {}
+
+variable "cloud_os_username" {}
+
+variable "cloud_os_password" {}
+
+variable "cloud_os_region" {}

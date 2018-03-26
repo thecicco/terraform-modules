@@ -2,7 +2,35 @@
 
 manage_etc_hosts: localhost
 
+write_files:
+  - content: |
+       [Global]
+       auth-url=${os_api_url}
+       tenant-name=${os_tenant_name}
+       username=${os_username}
+       password=${os_password}
+       region=${os_region}
+    path: /etc/kubernetes/openstack/cloud.conf
+    permission: 0600
+
+  - content: |
+       [Service]
+       Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
+       Environment="KUBELET_SYSTEM_PODS_ARGS=--pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true"
+       Environment="KUBELET_NETWORK_ARGS=--network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin"
+       Environment="KUBELET_DNS_ARGS=--cluster-dns=10.96.0.10 --cluster-domain=cluster.local"
+       Environment="KUBELET_AUTHZ_ARGS=--authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/ca.crt"
+       Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"
+       Environment="KUBELET_CERTIFICATE_ARGS=--rotate-certificates=true --cert-dir=/var/lib/kubelet/pki"
+       Environment="KUBELET_CLOUD_ARGS=--cloud-provider=openstack --cloud-config=/etc/kubernetes/openstack/cloud.conf"
+       ExecStart=
+       ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_SYSTEM_PODS_ARGS $KUBELET_NETWORK_ARGS $KUBELET_DNS_ARGS $KUBELET_AUTHZ_ARGS $KUBELET_CADVISOR_ARGS $KUBELET_CERTIFICATE_ARGS $KUBELET_CLOUD_ARGS $KUBELET_EXTRA_ARGS
+    path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    permission: 0644
+
 runcmd:
+  - systemctl daemon-reload
+  - systemctl restart kubelet
   - kubeadm join --token ${kube-token} --discovery-token-unsafe-skip-ca-verification ${master-ip}:6443
 
 final_message: "Kubernetes worker is ready to use"
