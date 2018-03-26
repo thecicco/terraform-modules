@@ -1,3 +1,16 @@
+# Kubernetes join token 
+resource "random_string" "kube-first-token-part" {
+  length = 6
+  upper = false
+  special = false
+}
+
+resource "random_string" "kube-second-token-part" {
+  length = 16
+  upper = false
+  special = false
+}
+
 # Network data
 data "openstack_networking_network_v2" "network" {
   name = "${var.network_name}"
@@ -45,7 +58,12 @@ data "template_file" "cloud-config-master" {
   template = "${file("${path.module}/kube-master.yml")}"
   vars {
     public-ip  = "${module.kubernetes_master.public-instance-address[0]}"
-    kube-token = "${var.kube-token}"
+    kube-token = "${format("%s.%s", random_string.kube-first-token-part.result, random_string.kube-second-token-part.result)}"
+    os_api_url = "${var.cloud_os_api_url}"
+    os_tenant_name = "${var.cloud_os_tenant_name}"
+    os_username = "${var.cloud_os_username}"
+    os_password = "${var.cloud_os_password}"
+    os_region = "${var.cloud_os_region}"
   }
 }
 
@@ -53,7 +71,12 @@ data "template_file" "cloud-config-worker" {
   template = "${file("${path.module}/kube-worker.yml")}"
   vars {
     master-ip  = "${module.kubernetes_master.instance-address[0]}"
-    kube-token = "${var.kube-token}"
+    kube-token = "${format("%s.%s", random_string.kube-first-token-part.result, random_string.kube-second-token-part.result)}"
+    os_api_url = "${var.cloud_os_api_url}"
+    os_tenant_name = "${var.cloud_os_tenant_name}"
+    os_username = "${var.cloud_os_username}"
+    os_password = "${var.cloud_os_password}"
+    os_region = "${var.cloud_os_region}"
   }
 }
 
