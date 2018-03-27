@@ -45,6 +45,7 @@ write_files:
   - content: |
       apiVersion: kubeadm.k8s.io/v1alpha1
       kind: MasterConfiguration
+      kubernetesVersion: $VERSION
       api:
         advertiseAddress: ens3
       etcd:
@@ -85,6 +86,7 @@ write_files:
        mkdir -p /etc/kubernetes/automium && chmod 0700 /etc/kubernetes/automium
        curl -k -sS https://bastion.service.automium.consul:3001/.automium/ca > /etc/kubernetes/automium/webhook-ca.crt
        chmod 0600 /etc/kubernetes/automium/webhook-ca.crt
+       cat /root/kubeadm-config.yml | VERSION="$(dpkg -l | grep kubelet | awk '{ print $3 }' | cut -d "-" -f 1)" envsubst > /root/kubeadm-config.yml
        kubeadm init --config /root/kubeadm-config.yml
        if [ $? -ne 0 ]; then
           sleep 5
