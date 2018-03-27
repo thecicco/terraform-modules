@@ -33,6 +33,16 @@ module "kubernetes-ssh_sg" {
   allow_remote = "${var.access-cidr}"
 }
 
+module "kubernetes-api_sg" {
+  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  name = "kubernetes-api"
+  region = "${var.region}"
+  protocol = "tcp"
+  port_range_min = 6443
+  port_range_max = 6443
+  allow_remote = "${var.api-access-cidr}"
+}
+
 module "kubernetes-all-tcp-from-internal_sg" {
   source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
   name = "kubernetes-all-tcp-from-internal"
@@ -91,7 +101,7 @@ module "kubernetes_master" {
   discovery = "true"
   flavor = "${var.master_flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.kubernetes-ssh_sg.sg_id}","${module.kubernetes-all-tcp-from-internal_sg.sg_id}","${module.kubernetes-all-udp-from-internal_sg.sg_id}"]
+  sec_group = ["${module.kubernetes-ssh_sg.sg_id}","${module.kubernetes-api_sg.sg_id}","${module.kubernetes-all-tcp-from-internal_sg.sg_id}","${module.kubernetes-all-udp-from-internal_sg.sg_id}"]
   keypair = "${var.keyname}"
   userdata = "${data.template_file.cloud-config-master.rendered}"
   tags = {

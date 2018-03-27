@@ -22,6 +22,10 @@ variable "access-cidr" {
    default = "0.0.0.0/0"
 }
 
+variable "api-access-cidr" {
+   default = "127.0.0.1/32"
+}
+
 variable "keyname" {}
 
 variable "network_name" {}
