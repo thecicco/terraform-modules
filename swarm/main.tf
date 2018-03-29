@@ -35,7 +35,7 @@ module "swarm_manager" {
   image = "${var.image}"
   quantity = "${var.manager_count}"
   external = "false"
-  discovery = "false"
+  discovery = "${var.manager_discovery}"
   flavor = "${var.manager_flavor}"
   network_name = "${var.network_name}"
   sec_group = ["${module.swarm_internal_sg.sg_id}"]
@@ -52,7 +52,7 @@ module "swarm_worker" {
   image = "${var.image}"
   quantity = "${var.worker_count}"
   external = "false"
-  discovery = "true"
+  discovery = "${var.worker_discovery}"
   flavor = "${var.worker_flavor}"
   network_name = "${var.network_name}"
   sec_group = ["${module.swarm_internal_sg.sg_id}"]
