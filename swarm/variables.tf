@@ -39,3 +39,11 @@ variable "tags_worker" {
     "server_group" = "SWARM"
   }
 }
+
+variable "manager_discovery" {
+   default = "false"
+}
+
+variable "worker_discovery" {
+   default = "true"
+}
