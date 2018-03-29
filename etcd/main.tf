@@ -10,23 +10,11 @@ data "openstack_networking_subnet_v2" "subnet" {
 }
 
 # Security groups
-module "etcd-all-tcp-from-internal_sg" {
+module "etcd-all-from-internal_sg" {
   source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
-  name = "etcd-all-tcp-from-internal"
+  name = "etcd-all-from-internal"
   region = "${var.region}"
-  protocol = "tcp"
-  port_range_min = 1
-  port_range_max = 65535
-  allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
-}
-
-module "etcd-all-udp-from-internal_sg" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
-  name = "etcd-all-udp-from-internal"
-  region = "${var.region}"
-  protocol = "udp"
-  port_range_min = 1
-  port_range_max = 65535
+  protocol = ""
   allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
 }
 
@@ -55,7 +43,7 @@ module "etcd-server" {
   discovery_port = 2380
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.etcd-all-tcp-from-internal_sg.sg_id}","${module.etcd-all-udp-from-internal_sg.sg_id}"]
+  sec_group = ["${module.etcd-all-from-internal_sg.sg_id}"]
   keypair = "${var.keyname}"
   region = "${var.region}"
   userdata = "${data.template_file.etcd-cloudinit.rendered}"
