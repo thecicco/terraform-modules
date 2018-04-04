@@ -10,6 +10,8 @@ write_files:
        username=${os_username}
        password=${os_password}
        region=${os_region}
+       [BlockStorage]
+       ignore-volume-az=true
     path: /etc/kubernetes/openstack/cloud.conf
     permission: 0600
 
