@@ -26,6 +26,14 @@ variable "api-access-cidr" {
    default = "127.0.0.1/32"
 }
 
+variable "pod-network-cidr" {
+   default = "192.168.0.0/16"
+}
+
+variable "service-network-cidr" {
+   default = "10.96.0.0/12"
+}
+
 variable "keyname" {}
 
 variable "network_name" {}

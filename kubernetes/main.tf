@@ -62,6 +62,10 @@ data "template_file" "cloud-config-master" {
     os_username = "${var.cloud_os_username}"
     os_password = "${var.cloud_os_password}"
     os_region = "${var.cloud_os_region}"
+    pod-network-cidr = "${var.pod-network-cidr}"
+    service-network-cidr = "${var.service-network-cidr}"
+    dns-service-addr = "${cidrhost(var.service-network-cidr, 10)}"
+    calico-etcd-addr = "${cidrhost(var.service-network-cidr, 11)}"
   }
 }
 
@@ -75,6 +79,7 @@ data "template_file" "cloud-config-worker" {
     os_username = "${var.cloud_os_username}"
     os_password = "${var.cloud_os_password}"
     os_region = "${var.cloud_os_region}"
+    dns-service-addr = "${cidrhost(var.service-network-cidr, 10)}"
   }
 }
 
