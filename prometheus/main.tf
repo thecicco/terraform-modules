@@ -57,3 +57,7 @@ module "prometheus" {
   keypair = "${var.keyname}"
   tags = "${var.tags}"
 }
+  
+output "instance" {
+  value = "${module.prometheus.instance}"
+}
