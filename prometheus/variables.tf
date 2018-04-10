@@ -15,3 +15,7 @@ variable "tags" {
     "server_group" = "PROMETHEUS"
   }
 }
+
+variable "custom_secgroups" {
+   default = []
+}
