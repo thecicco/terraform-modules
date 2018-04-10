@@ -49,3 +49,11 @@ variable "cloud_os_username" {}
 variable "cloud_os_password" {}
 
 variable "cloud_os_region" {}
+
+variable "custom_secgroups_master" {
+   default = []
+}
+
+variable "custom_secgroups_workers" {
+   default = []
+}

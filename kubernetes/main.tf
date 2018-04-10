@@ -94,7 +94,7 @@ module "kubernetes_master" {
   discovery = "true"
   flavor = "${var.master_flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.kubernetes-ssh_sg.sg_id}","${module.kubernetes-api_sg.sg_id}","${module.kubernetes-all-from-internal_sg.sg_id}"]
+  sec_group = "${concat(var.custom_secgroups_master, list("${module.kubernetes-ssh_sg.sg_id}","${module.kubernetes-api_sg.sg_id}","${module.kubernetes-all-from-internal_sg.sg_id}"))}"
   keypair = "${var.keyname}"
   userdata = "${data.template_file.cloud-config-master.rendered}"
   tags = {
@@ -113,7 +113,7 @@ module "kubernetes_workers" {
   discovery = "true"
   flavor = "${var.worker_flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.kubernetes-all-from-internal_sg.sg_id}"]
+  sec_group = "${concat(var.custom_secgroups_workers, list("${module.kubernetes-all-from-internal_sg.sg_id}"))}"
   keypair = "${var.keyname}"
   userdata = "${data.template_file.cloud-config-worker.rendered}"
   tags = {
