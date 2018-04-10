@@ -43,7 +43,7 @@ module "etcd-server" {
   discovery_port = 2380
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
-  sec_group = ["${module.etcd-all-from-internal_sg.sg_id}"]
+  sec_group = "${concat(var.custom_secgroups, list("${module.etcd-all-from-internal_sg.sg_id}"))}"
   keypair = "${var.keyname}"
   region = "${var.region}"
   userdata = "${data.template_file.etcd-cloudinit.rendered}"
