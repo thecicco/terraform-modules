@@ -77,7 +77,6 @@ module "web" {
   sec_group = ["${module.ssh.sg_id}"]
   keypair = "${module.keypair.name}"
   tags = {
-    "icinga2_client" = "" # If you integrate with icinga2 role
     "server_group" = "WEB"
   }
 }
