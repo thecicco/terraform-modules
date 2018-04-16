@@ -31,9 +31,6 @@ write_files:
     permission: 0644
 
 runcmd:
-  - wget -O /root/kubelet "https://swift.it-mil1.entercloudsuite.com/v1/KEY_1a68c22a99cd4e558054ede2c878929d/kube-binaries/kubelet"
-  - chmod +x /root/kubelet
-  - mv /root/kubelet /usr/bin/kubelet
   - systemctl daemon-reload
   - systemctl restart kubelet
   - kubeadm join --token ${kube-token} --discovery-token-unsafe-skip-ca-verification ${master-ip}:6443
