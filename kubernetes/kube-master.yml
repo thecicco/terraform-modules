@@ -15,7 +15,7 @@ write_files:
             cluster: automium-authn
           name: webhook
     path: /etc/kubernetes/automium/webhook.conf
-    permission: 0600
+    permissions: '0600'
     
   - content: |
       # Calico Version v3.0.4
@@ -440,7 +440,7 @@ write_files:
         name: calico-kube-controllers
         namespace: kube-system
     path: /root/network.yaml
-    permission: 0600
+    permissions: '0600'
 
   - content: |
        [Global]
@@ -452,7 +452,7 @@ write_files:
        [BlockStorage]
        ignore-volume-az=true
     path: /etc/kubernetes/openstack/cloud.conf
-    permission: 0600
+    permissions: '0600'
 
   - content: |
        [Service]
@@ -467,7 +467,7 @@ write_files:
        ExecStart=
        ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_SYSTEM_PODS_ARGS $KUBELET_NETWORK_ARGS $KUBELET_DNS_ARGS $KUBELET_AUTHZ_ARGS $KUBELET_CADVISOR_ARGS $KUBELET_CERTIFICATE_ARGS $KUBELET_CLOUD_ARGS $KUBELET_EXTRA_ARGS
     path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-    permission: 0644
+    permissions: '0644'
 
   - content: |
       apiVersion: kubeadm.k8s.io/v1alpha1
@@ -503,7 +503,7 @@ write_files:
       apiServerCertSANs:
       - ${public-ip}
     path: /root/kubeadm-config.yml
-    permission: 0600
+    permissions: '0600'
 
   - content: |
        #!/bin/bash
@@ -529,7 +529,7 @@ write_files:
        sudo kubectl apply -f /root/network.yaml
        sync
     path: /root/bootstrap.sh
-    permission: 0755
+    permissions: '0755'
     
 runcmd:
   - bash /root/bootstrap.sh
