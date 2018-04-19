@@ -12,11 +12,6 @@ variable "region" {
   default = "it-mil1"
 }
 
-# Your Auth URL
-variable "auth_url" {
-  default = "https://test.com/v2.0"
-}
-
 # Your tenant name
 variable "tenant_name" {
   default = "test@test.com"
