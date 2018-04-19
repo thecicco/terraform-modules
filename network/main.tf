@@ -20,10 +20,7 @@ resource "openstack_networking_subnet_v2" "internal-subnet" {
     start = "${var.internal-network-cidr-dhcp-start}"
     end   = "${var.internal-network-cidr-dhcp-end}"
   }
-  host_routes = {
-    destination_cidr = "${var.internal-network-cidr-route-destination}"
-    next_hop = "${var.internal-network-cidr-route-nexthop}"
-  }
+  host_routes = "${var.host_routes}"
 }
 
 // if a router already exist do this 
@@ -40,7 +37,7 @@ resource "openstack_networking_router_v2" "router" {
   name = "router"
   region = "${var.region}"
   admin_state_up = "true"
-  external_gateway = "${data.openstack_networking_network_v2.public_network.id}"
+  external_network_id =  "${data.openstack_networking_network_v2.public_network.id}"
 }
 
 resource "openstack_networking_router_interface_v2" "int-ext-interface-internal" {
