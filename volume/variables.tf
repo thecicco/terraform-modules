@@ -3,9 +3,6 @@ variable "size" {}
 variable "instance" {
   type = "list"
 }
-variable "device" {
-  default = "auto"
-}
 variable "quantity" {
   default = 1
 }
