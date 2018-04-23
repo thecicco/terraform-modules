@@ -36,9 +36,7 @@ module "jenkins_internal_sg" {
   source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
   name = "jenkins_internal_sg"
   region = "${var.region}"
-  protocol = "tcp"
-  port_range_min = 1
-  port_range_max = 65535
+  protocol = ""
   allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
 }
 
