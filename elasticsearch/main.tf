@@ -25,7 +25,7 @@ module "elasticsearch" {
   region = "${var.region}"
   image = "${var.image}"
   quantity = "${var.quantity}"
-  external = "true"
+  external = "false"
   discovery = "true"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
