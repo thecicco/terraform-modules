@@ -25,8 +25,9 @@ write_files:
        Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"
        Environment="KUBELET_CERTIFICATE_ARGS=--rotate-certificates=true --cert-dir=/var/lib/kubelet/pki"
        Environment="KUBELET_CLOUD_ARGS=--cloud-provider=openstack --cloud-config=/etc/kubernetes/openstack/cloud.conf"
+       Environment="KUBELET_LABEL_ARGS=--node-labels=node-role.kubernetes.io/worker="
        ExecStart=
-       ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_SYSTEM_PODS_ARGS $KUBELET_NETWORK_ARGS $KUBELET_DNS_ARGS $KUBELET_AUTHZ_ARGS $KUBELET_CADVISOR_ARGS $KUBELET_CERTIFICATE_ARGS $KUBELET_CLOUD_ARGS $KUBELET_EXTRA_ARGS
+       ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_SYSTEM_PODS_ARGS $KUBELET_NETWORK_ARGS $KUBELET_DNS_ARGS $KUBELET_AUTHZ_ARGS $KUBELET_CADVISOR_ARGS $KUBELET_CERTIFICATE_ARGS $KUBELET_CLOUD_ARGS $KUBELET_LABEL_ARGS $KUBELET_EXTRA_ARGS
     path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     permissions: '0644'
 
