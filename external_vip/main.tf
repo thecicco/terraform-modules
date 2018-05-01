@@ -8,6 +8,10 @@ data "openstack_networking_subnet_v2" "subnet" {
   region = "${var.region}"
 }
 
+output "public-address" {
+  value = "${openstack_networking_floatingip_v2.ips.*.address}"
+}
+
 resource "openstack_networking_port_v2" "port_public" {
   name = "port_public"
   count = "${length(var.external_vips)}"
