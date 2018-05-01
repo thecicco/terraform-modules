@@ -59,7 +59,8 @@ variable "keypair" {
 }
 
 variable "userdata" {
-  default = ""
+  type = "list"
+  default = [""]
 }
 
 variable "discovery_port" {

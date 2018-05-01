@@ -77,7 +77,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   }
 
   metadata = "${var.tags}"
-  user_data = "${var.userdata}"
+  user_data = "${element(var.userdata,count.index)}"
 }
 
 resource "consul_catalog_entry" "service" {
