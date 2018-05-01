@@ -2,3 +2,7 @@ provisioner.tf
 private.pem
 private.pem.pub
 *.swp
+*.swo
+*.swn
+*.swm
+*.swl

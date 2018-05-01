@@ -9,7 +9,7 @@ data "openstack_networking_subnet_v2" "subnet" {
 }
 
 output "public-address" {
-  value = "${openstack_networking_floatingip_v2.ips.*.address}"
+  value = "${openstack_networking_floatingip_v2.port_public_floating_ip.*.address}"
 }
 
 resource "openstack_networking_port_v2" "port_public" {
