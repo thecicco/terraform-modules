@@ -145,9 +145,9 @@ Expose vip with a floating ip
 
 ```
 module "external_vip_web" {
-  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.6"
+  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.7"
   external_vips = ["10.2.255.1","10.2.255.2"]
-  network_id = "${module.network.id}"
+  network_id = "${var.network_name}"
   subnet = "${module.network.subnet_id}"
 }
 ```
