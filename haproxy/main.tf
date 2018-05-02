@@ -67,7 +67,7 @@ module "haproxy" {
   region = "${var.region}"
   image = "${var.image}"
   quantity = "${var.quantity}"
-  external = "true"
+  external = "${var.external}"
   discovery = "true"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
