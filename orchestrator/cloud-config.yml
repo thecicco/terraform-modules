@@ -25,7 +25,7 @@ write_files:
                 host: '127.0.0.1'
                 password: orchestrator
                 priv: '*.*:ALL'
-          - role: jsecchiero.orchestrator
+          - role: entercloudsuite.orchestrator
             orchestrator_version: 3.0.10
             orchestrator_mysql_user: orchestrator
             orchestrator_mysql_password: orchestrator
@@ -105,8 +105,8 @@ write_files:
   - content: |
       - src: jsecchiero.mysql-innobackupex
         version: 1.0.2
-      - src: jsecchiero.orchestrator
-        version: 1.0.1
+      - src: entercloudsuite.orchestrator
+        version: 1.0.0
       - src: entercloudsuite.mysql
         version: 1.0.0
       - src: entercloudsuite.haproxy
