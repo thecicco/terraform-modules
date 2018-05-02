@@ -10,6 +10,10 @@ variable "network_name" {}
 
 variable "image" {}
 
+variable "external" {
+   default = "true"
+}
+
 variable "quantity" {
    default = 1
 }
