@@ -106,7 +106,7 @@ write_files:
       - src: jsecchiero.mysql-innobackupex
         version: 1.0.2
       - src: entercloudsuite.orchestrator
-        version: 1.0.0
+        version: 1.0.1
       - src: entercloudsuite.mysql
         version: 1.0.0
       - src: entercloudsuite.haproxy
