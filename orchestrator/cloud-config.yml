@@ -73,7 +73,7 @@ write_files:
                   server ${name}-0 ${name}-0.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:${orchestrator_service_port} check
-          - role: tersmitten.keepalived
+          - role: entercloudsuite.keepalived
             keepalived_options:
               - name: log-detail
             keepalived_vrrp_scripts:
@@ -103,16 +103,14 @@ write_files:
     permissions: '0400'
 
   - content: |
-      - src: jsecchiero.mysql-innobackupex
-        version: 1.0.2
       - src: entercloudsuite.orchestrator
-        version: 1.0.1
+        version: 1.0.2
       - src: entercloudsuite.mysql
         version: 1.0.0
       - src: entercloudsuite.haproxy
         version: 1.1.0
-      - src: tersmitten.keepalived
-        version: v2.5.4
+      - src: entercloudsuite.keepalived
+        version: 1.0.0
     path: /tmp/cloud/requirements.yml
     permissions: '0400'
 

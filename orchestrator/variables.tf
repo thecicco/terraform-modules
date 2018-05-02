@@ -56,7 +56,7 @@ variable "orchestrator_password" {
 }
 
 variable "orchestrator_raft_enabled" {
-  default = ""
+  default = "false"
 }
 
 variable "orchestrator_raft_data_dir" {
@@ -64,11 +64,11 @@ variable "orchestrator_raft_data_dir" {
 }
 
 variable "orchestrator_raft_default_port" {
-  default = ""
+  default = "10008"
 }
 
 variable "orchestrator_raft_nodes" {
-  default = ""
+  default = "[]"
 }
 
 variable "discovery_port" {

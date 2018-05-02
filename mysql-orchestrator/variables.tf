@@ -29,6 +29,10 @@ variable "orchestrator_port" {
   default = "80"
 }
 
+variable "orchestrator_raft_default_port" {
+  default = "10008"
+}
+
 variable "consul" {
 }
 

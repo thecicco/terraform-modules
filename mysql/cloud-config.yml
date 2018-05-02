@@ -61,7 +61,7 @@ write_files:
             when: ( ${bootstrap} == false) and
                   ( '"${consul}" != ""' )
         roles:
-          - role: jsecchiero.mysql-innobackupex
+          - role: entercloudsuite.mysql-innobackupex
             innobackupex_source_server: "{{ mysql_master }}"
             innobackupex_destination: ${mysql_datadir}
             when: ( ${bootstrap} == false ) and
@@ -112,7 +112,7 @@ write_files:
                 relay_log_info_repository       = TABLE
                 master_info_repository          = TABLE
         roles:
-          - role: geerlingguy.mysql
+          - role: entercloudsuite.mysql
             mysql_root_username: ${mysql_root_name}
             mysql_root_password: ${mysql_root_password}
             mysql_packages:
@@ -232,8 +232,8 @@ write_files:
     permissions: '0400'
 
   - content: |
-      - src: jsecchiero.mysql-innobackupex
-        version: 1.0.3
+      - src: entercloudsuite.mysql-innobackupex
+        version: 1.0.0
       - src: entercloudsuite.mysql
         version: 1.0.0
     path: /tmp/cloud/requirements.yml

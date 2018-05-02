@@ -65,7 +65,7 @@ module "orchestrator" {
   orchestrator_password = "${var.orchestrator_password}" 
   orchestrator_raft_enabled = "true"
   orchestrator_raft_data_dir = "/var/lib/orchestrator" 
-  orchestrator_raft_default_port = "10008"
+  orchestrator_raft_default_port = "${var.orchestrator_raft_default_port}"
   orchestrator_raft_nodes = "[ '${var.name}-orchestrator-0.node.${var.consul_datacenter}.consul', '${var.name}-orchestrator-1.node.${var.consul_datacenter}.consul', '${var.name}-orchestrator-2.node.${var.consul_datacenter}.consul' ]" 
   consul = "${var.consul}" 
   consul_port = "${var.consul_port}" 
