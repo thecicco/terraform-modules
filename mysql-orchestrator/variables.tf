@@ -13,6 +13,7 @@ variable "orchestrator_ip" {
 }
 
 variable "orchestrator_subnet" {
+  default = ""
 }
 
 variable "orchestrator_virtual_router_id" {
@@ -21,8 +22,17 @@ variable "orchestrator_virtual_router_id" {
 variable "name" {
 }
 
+variable "mysql_ip" {
+}
+
+variable "mysql_subnet" {
+}
+
 variable "mysql_port" {
   default = "3306"
+}
+
+variable "mysql_virtual_router_id" {
 }
 
 variable "orchestrator_port" {
@@ -83,4 +93,8 @@ variable "network_name" {
 
 variable "sec_group" {
   type = "list"
+}
+
+variable "region" {
+  default = "it-mil1"
 }

@@ -23,11 +23,34 @@ data "template_file" "cloud-config" {
     name = "${var.name}"
     number = "${count.index}"
     hostname = "${var.name}-${count.index}"
+    mysql_ip = "${var.mysql_ip}"
+    mysql_subnet = "${var.mysql_subnet}"
+    mysql_port = "${var.mysql_port}"
     mysql_virtual_router_id = "${var.mysql_virtual_router_id}"
     mysql_root_name = "${var.mysql_root_name}"
     mysql_root_password = "${var.mysql_root_password}"
     mysql_admin_name = "${var.mysql_admin_name}"
     mysql_admin_password = "${var.mysql_admin_password}"
+    mysql_replica_user_name = "${var.mysql_replica_user_name}"
+    mysql_replica_user_password = "${var.mysql_replica_user_password}"
+    consul = "${var.consul}" 
+    consul_port = "${var.consul_port}" 
+    consul_datacenter = "${var.consul_datacenter}" 
+    orchestrator = "${var.orchestrator}" 
+    orchestrator_port = "${var.orchestrator_port}" 
+    orchestrator_user = "${var.orchestrator_user}" 
+    orchestrator_password = "${var.orchestrator_password}" 
+    orchestrator_cluster_name = "${var.orchestrator_cluster_name}" 
+    private_ssh_key = "${indent(20,var.private_ssh_key)}"
     mysql_datadir = "${var.mysql_datadir}"
+    bootstrap = "${var.bootstrap}"
   }
+}
+
+module "external_vip_web" {
+  name = "${var.name}-vip"
+  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.7-devel"
+  external_vips = ["${var.mysql_vip ? var.mysql_ip : ""}"]
+  network_name = "${var.network_name}"
+  discovery = "${var.mysql_vip ? var.discovery : false}"
 }

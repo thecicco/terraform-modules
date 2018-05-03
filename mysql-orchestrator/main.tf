@@ -1,5 +1,5 @@
 module "mysql" {
-  source = "github.com/entercloudsuite/terraform-modules//mysql?ref=2.7-devel"
+  source = "github.com/entercloudsuite/terraform-modules//mysql-orchestrator-db?ref=2.7-devel"
   name = "${var.name}"
   quantity = "${var.quantity}"
   external = "${var.external}"
@@ -7,6 +7,11 @@ module "mysql" {
   sec_group = "${var.sec_group}"
   keypair = "${var.keypair}"
   private_ssh_key = "${var.private_ssh_key}"
+  discovery = "true"
+  mysql_vip = "true"
+  mysql_ip = "${var.mysql_ip}"
+  mysql_subnet = "${var.mysql_subnet}"
+  mysql_virtual_router_id = "${var.mysql_virtual_router_id}"
   mysql_port = "${var.mysql_port}"
   mysql_datadir = "${var.mysql_datadir}"
   mysql_admin_name = "${var.mysql_admin_name}"
@@ -24,7 +29,7 @@ module "mysql" {
 }
 
 module "mysql-bootstrap" {
-  source = "github.com/entercloudsuite/terraform-modules//mysql?ref=2.7-devel"
+  source = "github.com/entercloudsuite/terraform-modules//mysql-orchestrator-db?ref=2.7-devel"
   name = "${var.name}-bootstrap"
   quantity = "${var.bootstrap ? 1 : 0}"
   external = "${var.external}"
@@ -33,6 +38,11 @@ module "mysql-bootstrap" {
   keypair = "${var.keypair}"
   private_ssh_key = "${var.private_ssh_key}"
   bootstrap = "${var.bootstrap}"
+  discovery = "true"
+  mysql_vip = "false"
+  mysql_ip = "${var.mysql_ip}"
+  mysql_subnet = "${var.mysql_subnet}"
+  mysql_virtual_router_id = "${var.mysql_virtual_router_id}"
   mysql_port = "${var.mysql_port}"
   mysql_datadir = "${var.mysql_datadir}"
   mysql_admin_name = "${var.mysql_admin_name}"
@@ -57,6 +67,8 @@ module "orchestrator" {
   network_name = "${var.network_name}"
   sec_group = "${var.sec_group}"
   keypair = "${var.keypair}"
+  discovery = "true"
+  orchestrator_vip = "true"
   orchestrator_ip = "${var.orchestrator_ip}"
   orchestrator_subnet = "${var.orchestrator_subnet}"
   orchestrator_port = "${var.orchestrator_port}" 

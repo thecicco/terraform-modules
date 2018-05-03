@@ -6,13 +6,20 @@ variable "name" {
   default = "orchestrator"
 }
 
+variable "orchestrator_vip" {
+  default = "false"
+}
+
 variable "orchestrator_ip" {
+  default = "1.1.1.1"
 }
 
 variable "orchestrator_subnet" {
+  default = ""
 }
 
 variable "orchestrator_virtual_router_id" {
+  default = ""
 }
 
 variable "orchestrator_port" {
@@ -87,7 +94,7 @@ variable "keypair" {
 }
 
 variable "flavor" {
-  default = "e3standard.x3"
+  default = "e3standard.x2"
 }
 
 variable "external" {
@@ -95,4 +102,12 @@ variable "external" {
 }
 
 variable "network_name" {
+}
+
+variable "discovery" {
+  default = "false"
+}
+
+variable "region" {
+  default = "it-mil1"
 }

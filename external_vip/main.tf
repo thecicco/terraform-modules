@@ -14,7 +14,7 @@ output "public-address" {
 
 resource "openstack_networking_port_v2" "port_public" {
   name = "port_public"
-  count = "${length(var.external_vips)}"
+  count = "${var.external_vips[0] == "" ? 0 : length(var.external_vips)}"
   network_id = "${data.openstack_networking_network_v2.network.id}"
   admin_state_up = "true"
   region = "${var.region}"
@@ -25,8 +25,21 @@ resource "openstack_networking_port_v2" "port_public" {
 }
 
 resource "openstack_networking_floatingip_v2" "port_public_floating_ip" {
-  count = "${length(var.external_vips)}"
+  count = "${var.external_vips[0] == "" ? 0 : length(var.external_vips)}"
   pool = "PublicNetwork"
   port_id = "${element(openstack_networking_port_v2.port_public.*.id, count.index)}"
   region = "${var.region}"
+}
+
+resource "consul_catalog_entry" "service" {
+  count = "${var.discovery ? length(var.external_vips) : 0}"
+  address = "${element(var.external_vips,count.index)}"
+  node    = "${var.name}-${count.index}"
+  service = {
+    address = "${element(var.external_vips,count.index)}"
+    id      = "${var.name}-${count.index}"
+    name    = "${var.name}"
+    port    = "${var.discovery_port}"
+    tags    = ["${count.index}"]
+  }
 }

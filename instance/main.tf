@@ -26,6 +26,7 @@ resource "openstack_networking_floatingip_v2" "ips" {
 }
 
 resource "openstack_compute_servergroup_v2" "clusterSG" {
+  count = "${var.quantity > 0 ? 1 : 0}"
   region = "${var.region}"
   name     = "${var.name}"
   policies = ["anti-affinity"]
