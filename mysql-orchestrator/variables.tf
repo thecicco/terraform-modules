@@ -22,6 +22,10 @@ variable "orchestrator_virtual_router_id" {
 variable "name" {
 }
 
+variable "mysql_flavor" {
+  default = "e3standard.x3"
+}
+
 variable "mysql_ip" {
 }
 
