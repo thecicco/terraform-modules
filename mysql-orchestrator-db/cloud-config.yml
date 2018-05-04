@@ -256,8 +256,8 @@ write_files:
             consul_template_templates:
               - name: master.ctmpl
                 dest: /etc/haproxy/conf.d/master.cfg
-                cmd: service haproxy reload
-                perms: 0666
+                cmd: service haproxy reload || true
+                perms: 666
                 backup: true
                 wait: '0s'
           - role: entercloudsuite.keepalived
