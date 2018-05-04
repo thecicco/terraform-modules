@@ -213,7 +213,8 @@ write_files:
                             anchor bool,
                             PRIMARY KEY (id)
                           );
-                          INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${orchestrator_cluster_name}', 1);
+                          INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${orchestrator_cluster_name}', 1)
+                          ON DUPLICATE KEY UPDATE cluster_name = '${orchestrator_cluster_name}';
                         EOF
 
                   - name: update consul with master the new cluster
@@ -230,10 +231,35 @@ write_files:
 
       - name: haproxy
         hosts: 127.0.0.1
+        pre_tasks:
+          - name: create consul template folder
+            file:
+              path: /opt/consul-template/templates
+              state: directory
+          - name: copy haproxy conf
+            copy:
+              content: |
+                {% raw %}
+                listen write-pool
+                    bind *:3307
+                    mode tcp
+                    server {{key "mysql/master/${orchestrator_cluster_name}/hostname"}} {{key "mysql/master/${orchestrator_cluster_name}/ipv4"}}:{{key "mysql/master/${orchestrator_cluster_name}/port"}} check port {{key "mysql/master/${orchestrator_cluster_name}/port"}}
+                {% endraw %}
+              dest: /opt/consul-template/templates/master.ctmpl
         roles:
           - role: entercloudsuite.haproxy
             haproxy_user: ${mysql_admin_name}
             haproxy_pass: ${mysql_admin_password}
+          - role: entercloudsuite.consul-template
+            consul_template_use_systemd: true
+            consul_template_consul_server: ${consul}
+            consul_template_templates:
+              - name: master.ctmpl
+                dest: /etc/haproxy/conf.d/master.cfg
+                cmd: service haproxy reload
+                perms: 0666
+                backup: true
+                wait: '0s'
           - role: entercloudsuite.keepalived
             keepalived_options:
               - name: log-detail
@@ -271,6 +297,8 @@ write_files:
       - src: entercloudsuite.haproxy
         version: 1.1.0
       - src: entercloudsuite.keepalived
+        version: 1.0.0
+      - src: entercloudsuite.consul-template
         version: 1.0.0
     path: /tmp/cloud/requirements.yml
     permissions: '0400'
