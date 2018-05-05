@@ -98,6 +98,7 @@ write_files:
 
                 track_scripts:
                   - chk_haproxy
+            when: ("${orchestrator_ip}" != "")
 
     path: /tmp/cloud/playbook.yml
     permissions: '0400'

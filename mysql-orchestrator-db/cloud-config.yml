@@ -285,6 +285,7 @@ write_files:
 
                 track_scripts:
                   - chk_haproxy
+            when: ("${mysql_ip}" != "")
 
     path: /tmp/cloud/playbook.yml
     permissions: '0400'

@@ -10,7 +10,7 @@ module "mysql" {
   discovery = "${var.discovery}"
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
-  allowed_address_pairs = "${var.mysql_ip}/32"
+  allowed_address_pairs = "${var.mysql_ip == "" ? "127.0.0.1" : var.mysql_ip}/32"
   tags = {
     "server_group" = "MYSQL"
   }
@@ -50,7 +50,7 @@ data "template_file" "cloud-config" {
 module "external_vip_web" {
   name = "${var.name}-vip"
   source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.7-devel"
-  external_vips = ["${var.mysql_vip ? var.mysql_ip : ""}"]
+  external_vip = "${var.mysql_ip}"
   network_name = "${var.network_name}"
-  discovery = "${var.mysql_vip ? var.discovery : false}"
+  discovery = "${var.discovery}"
 }

@@ -10,12 +10,8 @@ variable "name" {
   default = "mysql"
 }
 
-variable "mysql_vip" {
-  default = "false"
-}
-
 variable "mysql_ip" {
-  default = "1.1.1.1"
+  default = ""
 }
 
 variable "mysql_subnet" {
