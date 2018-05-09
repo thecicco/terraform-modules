@@ -85,7 +85,7 @@ write_files:
               shell: /bin/false
               home: /var/lib/mysql
           - name: fix permission
-            file: path=/var/lib/mysql recurse=yes owner=mysql group=mysql
+            file: path=${mysql_datadir} recurse=yes owner=mysql group=mysql
           - name: setup client password
             copy:
               dest: /root/.my.cnf
@@ -128,6 +128,7 @@ write_files:
             mysql_packages:
               - percona-server-server-5.7
               - percona-xtrabackup-24
+            mysql_datadir: ${mysql_datadir}
             mysql_replication_master: 127.0.0.1
             mysql_replication_role: master
             mysql_server_id: "{{ 4294967294 | random }}"

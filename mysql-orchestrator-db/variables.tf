@@ -22,6 +22,10 @@ variable "mysql_port" {
   default = "3306"
 }
 
+variable "mysql_datadir" {
+  default = "/var/lib/mysql-orchestrator"
+}
+
 variable "mysql_virtual_router_id" {
   default = ""
 }
