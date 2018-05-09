@@ -43,7 +43,7 @@ variable "mysql_volume_size" {
 }
 
 variable "mysql_volume_type" {
-  "Top"
+  default = "Top"
 }
 
 variable "orchestrator_port" {
