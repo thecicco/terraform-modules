@@ -39,6 +39,13 @@ variable "mysql_port" {
 variable "mysql_virtual_router_id" {
 }
 
+variable "mysql_volume_size" { 
+}
+
+variable "mysql_volume_type" {
+  "Top"
+}
+
 variable "orchestrator_port" {
   default = "80"
 }
