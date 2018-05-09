@@ -16,6 +16,8 @@ module "mysql" {
   mysql_ip = "192.168.0.216"
   mysql_subnet = "24"
   mysql_virtual_router_id = "10"
+  mysql_volume = "10"
+  mysql_type = "SSD-Standard"
   orchestrator_ip = "192.168.0.217"
   orchestrator_subnet = "24"
   orchestrator_virtual_router_id = "11"
