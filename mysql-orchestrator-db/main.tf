@@ -54,3 +54,12 @@ module "external_vip_web" {
   network_name = "${var.network_name}"
   discovery = "${var.discovery}"
 }
+
+module "volume-mysql" {
+  source = "github.com/entercloudsuite/terraform-modules//volume"
+  name = "${var.name}"
+  size = "${var.mysql_volume_size}"
+  instance = "${module.mysql.instance}"
+  quantity = "${module.mysql.quantity}"
+  volume_type = "${var.mysql_volume_type}"
+}

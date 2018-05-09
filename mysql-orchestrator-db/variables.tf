@@ -26,6 +26,13 @@ variable "mysql_virtual_router_id" {
   default = ""
 }
 
+variable "mysql_volume_size" {
+}
+
+variable "mysql_volume_type" {
+  default = "Top"
+}
+
 variable "orchestrator" {
   default = ""
 }

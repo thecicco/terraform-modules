@@ -2,6 +2,16 @@
 
 write_files:
   - content: |
+      - name: format volume
+        hosts: 127.0.0.1
+        roles:
+          - role: entercloudsuite.filesystem
+            disk_additional_disks:
+              - disk: /dev/vdb
+                fstype: xfs
+                mount_options: defaults
+                mount: /example
+
       - name: copy master mysql data
         hosts: 127.0.0.1
         pre_tasks:
@@ -301,6 +311,8 @@ write_files:
         version: 1.0.0
       - src: entercloudsuite.consul-template
         version: 1.0.0
+      - src: entercloudsuite.filesystem
+        version: 1.0.1
     path: /tmp/cloud/requirements.yml
     permissions: '0400'
 
