@@ -92,10 +92,6 @@ variable "orchestrator_password" {
   default = ""
 }
 
-variable "mysql_datadir" {
-  default = "/var/lib/mysql"
-}
-
 variable "private_ssh_key" {
   default = ""
 }
