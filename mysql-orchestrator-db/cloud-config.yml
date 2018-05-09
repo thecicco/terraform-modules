@@ -30,9 +30,9 @@ write_files:
                 authorized_key:
                   user: root
                   key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-              - name: check that the dir ${mysql_datadir} exist
+              - name: check that the dir ${mysql_datadir}/mysql exist
                 stat:
-                  path: ${mysql_datadir}
+                  path: ${mysql_datadir}/mysql
                 register: _mysql_datadir
             when: '"${consul}" != ""'
           - name: get mysql master from consul
