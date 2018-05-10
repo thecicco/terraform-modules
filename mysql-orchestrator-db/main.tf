@@ -2,7 +2,7 @@ module "mysql" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7-devel"
   name = "${var.name}"
   quantity = "${var.quantity}"
-  external = "true"
+  external = "${var.external}"
   region = "${var.region}"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
