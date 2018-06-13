@@ -2,6 +2,10 @@ variable "flavor" {
    default = "e3standard.x1"
 }
 
+variable "name" {
+   default = "haproxy"
+}
+
 variable "region" {}
 
 variable "keyname" {}
