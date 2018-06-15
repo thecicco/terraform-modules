@@ -102,8 +102,7 @@ module "web" {
 ```
 # Create volume for each web instance
 module "volume-web" {
-  source = "github.com/entercloudsuite/terraform-modules//volume"
-  device = "/dev/vdb" # Or not include to have an automatic mount point
+  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.6"
   name = "volume-web"
   size = "10"
   instance = "${module.web.instance}"
