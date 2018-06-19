@@ -51,7 +51,7 @@ module "prometheus" {
   discovery = "true"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
-  sec_group = "${concat(var.custom_secgroups, list("${module.prometheus_web_sg.sg_id}","${module.prometheus_internal_sg.sg_id}","${module.prometheus_ssh_sg.sg_id}"))}"
+  sec_group = "${concat(var.custom_secgroups, list("${module.prometheus_internal_sg.sg_id}"))}"
   keypair = "${var.keyname}"
   tags = "${var.tags}"
 }
