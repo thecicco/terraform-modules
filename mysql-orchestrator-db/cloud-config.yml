@@ -90,13 +90,13 @@ write_files:
                   - 22
                   - "{{ mysql_master_port }}"
 
-            when: ( ${bootstrap} == false)
+            when: ( "{{ bootstrap }}" == false)
 
         roles:
           - role: entercloudsuite.mysql-innobackupex
             innobackupex_source_server: "{{ mysql_master }}"
             innobackupex_destination: ${mysql_datadir}
-            when: ( ${bootstrap} == false ) and
+            when: ( "{{ bootstrap }}" == false ) and
                   ( _mysql_datadir.stat.exists == false ) and
                   ( "${consul}" != "" )
         post_tasks:
@@ -215,7 +215,7 @@ write_files:
                   mysql -uroot -p${mysql_root_password} -e "START SLAVE\G;"
               - name: delete ${mysql_datadir}/xtrabackup_binlog_info file
                 file: path=${mysql_datadir}/xtrabackup_binlog_info state=absent
-            when: ( ${bootstrap} == false ) and
+            when: ( "{{ bootstrap }}" == false ) and
                   ( _xtrabackup_binlog_info.stat.exists == True )
 
       - name: register node
@@ -259,7 +259,7 @@ write_files:
                        ( update_consul.stdout | from_json | json_query('[0].Value') | b64decode == "${hostname}.node.${consul_datacenter}.consul" )
                     delay: 1
                     retries: 6000
-                when: ${bootstrap} == true
+                when: "{{ bootstrap }}" == true
             when: '"${consul}" != ""'
 
       - name: haproxy
