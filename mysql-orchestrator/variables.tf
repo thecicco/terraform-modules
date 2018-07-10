@@ -1,10 +1,6 @@
 variable "quantity" {
 }
 
-variable "bootstrap" {
-  default = "false"
-}
-
 variable "orchestrator_quantity" {
   default = 3
 }

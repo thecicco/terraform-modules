@@ -30,38 +30,6 @@ module "mysql" {
   orchestrator_cluster_name = "${var.name}"
 }
 
-module "mysql-bootstrap" {
-  source = "github.com/entercloudsuite/terraform-modules//mysql-orchestrator-db?ref=2.7-devel"
-  name = "${var.name}-bootstrap"
-  quantity = "${var.bootstrap ? 1 : 0}"
-  external = "${var.external}"
-  network_name = "${var.network_name}"
-  sec_group = "${var.sec_group}"
-  keypair = "${var.keypair}"
-  private_ssh_key = "${var.private_ssh_key}"
-  flavor = "${var.mysql_flavor}"
-  bootstrap = "${var.bootstrap}"
-  mysql_volume_size = "${var.mysql_volume_size}"
-  mysql_volume_type = "${var.mysql_volume_type}"
-  discovery = "true"
-  mysql_subnet = "${var.mysql_subnet}"
-  mysql_virtual_router_id = "${var.mysql_virtual_router_id}"
-  mysql_port = "${var.mysql_port}"
-  mysql_datadir = "${var.mysql_datadir}"
-  mysql_admin_name = "${var.mysql_admin_name}"
-  mysql_admin_password = "${var.mysql_admin_password}"
-  mysql_replica_user_name = "${var.mysql_replica_user_name}"
-  mysql_replica_user_password = "${var.mysql_replica_user_password}"
-  consul = "${var.consul}"
-  consul_port = "${var.consul_port}"
-  consul_datacenter = "${var.consul_datacenter}"
-  orchestrator = "${var.name}-orchestrator-vip.service.automium.consul"
-  orchestrator_port = "${var.orchestrator_port}"
-  orchestrator_user = "${var.orchestrator_user}"
-  orchestrator_password = "${var.orchestrator_password}"
-  orchestrator_cluster_name = "${var.name}"
-}
-
 module "orchestrator" {
   source = "github.com/entercloudsuite/terraform-modules//orchestrator?ref=2.7-devel"
   name = "${var.name}-orchestrator"

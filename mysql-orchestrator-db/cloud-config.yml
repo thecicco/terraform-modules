@@ -15,26 +15,48 @@ write_files:
       - name: copy master mysql data
         hosts: 127.0.0.1
         pre_tasks:
-          - block:
-              - name: copy private ssh key
-                copy:
-                  dest: /root/.ssh/id_rsa
-                  mode: 0400
-                  content: |
-                    ${private_ssh_key}
-              - name: generate public key from private
-                shell: ssh-keygen -y -f /root/.ssh/id_rsa > /root/.ssh/id_rsa.pub
-                args:
-                  creates: /root/.ssh/id_rsa.pub
-              - name: enable ssh key for direct root access
-                authorized_key:
-                  user: root
-                  key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-              - name: check that the dir ${mysql_datadir}/mysql exist
-                stat:
-                  path: ${mysql_datadir}/mysql
-                register: _mysql_datadir
-            when: '"${consul}" != ""'
+          - name: copy private ssh key
+            copy:
+              dest: /root/.ssh/id_rsa
+              mode: 0400
+              content: |
+                ${private_ssh_key}
+          - name: generate public key from private
+            shell: ssh-keygen -y -f /root/.ssh/id_rsa > /root/.ssh/id_rsa.pub
+            args:
+              creates: /root/.ssh/id_rsa.pub
+          - name: enable ssh key for direct root access
+            authorized_key:
+              user: root
+              key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+          - name: check that the dir ${mysql_datadir}/mysql exist
+            stat:
+              path: ${mysql_datadir}/mysql
+            register: _mysql_datadir
+          - name: bootstrap phase
+            block:
+              - uri:
+                  url: http://${consul}:${consul_port}/v1/kv/session/create
+                  method: PUT
+                  status_code: 200
+                  body_format: json
+                register: bootstrap_session_consul
+                until: bootstrap_session_consul.failed == false
+                delay: 1
+                retries: 6000
+              - set_fact:
+                  bootstrap_session: "{{ bootstrap_session_consul.json | json_query('ID') }}" 
+              - uri:
+                  url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_bootstrap?acquire={{ bootstrap_session }}"
+                  method: PUT
+                  status_code: 200
+                  body: '{ name: ${hostname}.node.${consul_datacenter}.consul }'
+                register: bootstrap_consul
+                until: bootstrap_consul.failed == false
+                delay: 1
+                retries: 6000
+              - set_fact:
+                  bootstrap: "{{ bootstrap_consul | bool }}" 
           - name: get mysql master from consul
             block:
               - uri:
@@ -68,8 +90,8 @@ write_files:
                   - 22
                   - "{{ mysql_master_port }}"
 
-            when: ( ${bootstrap} == false) and
-                  ( '"${consul}" != ""' )
+            when: ( ${bootstrap} == false)
+
         roles:
           - role: entercloudsuite.mysql-innobackupex
             innobackupex_source_server: "{{ mysql_master }}"

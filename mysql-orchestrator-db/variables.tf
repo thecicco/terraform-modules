@@ -2,10 +2,6 @@ variable "quantity" {
   default = 1
 }
 
-variable "bootstrap" {
-  default = "false"
-}
-
 variable "name" {
   default = "mysql"
 }
