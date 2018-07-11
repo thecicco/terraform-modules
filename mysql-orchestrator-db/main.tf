@@ -41,7 +41,7 @@ data "template_file" "cloud-config" {
     orchestrator_user = "${var.orchestrator_user}" 
     orchestrator_password = "${var.orchestrator_password}" 
     orchestrator_cluster_name = "${var.orchestrator_cluster_name}" 
-    private_ssh_key = "${indent(20,var.private_ssh_key)}"
+    private_ssh_key = "${indent(16,var.private_ssh_key)}"
     mysql_datadir = "${var.mysql_datadir}"
   }
 }
