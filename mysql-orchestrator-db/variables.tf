@@ -46,7 +46,6 @@ variable "orchestrator_cluster_name" {
 }
 
 variable "consul" {
-  default = ""
 }
 
 variable "consul_port" {

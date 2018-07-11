@@ -90,15 +90,14 @@ write_files:
                   - 22
                   - "{{ mysql_master_port }}"
 
-            when: ( "{{ bootstrap }}" == false)
+            when: ( bootstrap == false)
 
         roles:
           - role: entercloudsuite.mysql-innobackupex
             innobackupex_source_server: "{{ mysql_master }}"
             innobackupex_destination: ${mysql_datadir}
-            when: ( "{{ bootstrap }}" == false ) and
-                  ( _mysql_datadir.stat.exists == false ) and
-                  ( "${consul}" != "" )
+            when: ( bootstrap == false ) and
+                  ( _mysql_datadir.stat.exists == false )
         post_tasks:
           - name: create mysql user
             user:
@@ -215,52 +214,50 @@ write_files:
                   mysql -uroot -p${mysql_root_password} -e "START SLAVE\G;"
               - name: delete ${mysql_datadir}/xtrabackup_binlog_info file
                 file: path=${mysql_datadir}/xtrabackup_binlog_info state=absent
-            when: ( "{{ bootstrap }}" == false ) and
+            when: ( bootstrap == false ) and
                   ( _xtrabackup_binlog_info.stat.exists == True )
 
       - name: register node
         hosts: 127.0.0.1
         tasks:
+          - name: register host to orchestrator
+            uri:
+              url: http://${orchestrator}:${orchestrator_port}/api/discover/${hostname}.node.${consul_datacenter}.consul/${mysql_port}
+              method: GET
+              status_code: 200
+              body_format: json
+            register: register_orchestrator
+            until: register_orchestrator.failed == false
+            delay: 1
+            retries: 6000
+
           - block:
-              - name: register host to orchestrator
-                uri:
-                  url: http://${orchestrator}:${orchestrator_port}/api/discover/${hostname}.node.${consul_datacenter}.consul/${mysql_port}
-                  method: GET
-                  status_code: 200
-                  body_format: json
-                register: register_orchestrator
-                until: register_orchestrator.failed == false
+              - name: setup meta table
+                shell:
+                  cmd: |
+                    mysql -uroot -p${mysql_root_password} << EOF
+                      CREATE DATABASE IF NOT EXISTS meta;
+                      CREATE TABLE IF NOT EXISTS meta.cluster (
+                        id int NOT NULL,
+                        cluster_name varchar(255),
+                        cluster_domain varchar(255),
+                        anchor bool,
+                        PRIMARY KEY (id)
+                      );
+                      INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${orchestrator_cluster_name}', 1)
+                      ON DUPLICATE KEY UPDATE cluster_name = '${orchestrator_cluster_name}';
+                    EOF
+
+              - name: update consul with master the new cluster
+                shell: |
+                  curl -sS http://${orchestrator}:${orchestrator_port}/api/submit-masters-to-kv-stores > /dev/null
+                  curl -f -sS http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/hostname
+                register: update_consul
+                until: ( update_consul.rc == 0 ) and
+                   ( update_consul.stdout | from_json | json_query('[0].Value') | b64decode == "${hostname}.node.${consul_datacenter}.consul" )
                 delay: 1
                 retries: 6000
-
-              - block:
-                  - name: setup meta table
-                    shell:
-                      cmd: |
-                        mysql -uroot -p${mysql_root_password} << EOF
-                          CREATE DATABASE IF NOT EXISTS meta;
-                          CREATE TABLE IF NOT EXISTS meta.cluster (
-                            id int NOT NULL,
-                            cluster_name varchar(255),
-                            cluster_domain varchar(255),
-                            anchor bool,
-                            PRIMARY KEY (id)
-                          );
-                          INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${orchestrator_cluster_name}', 1)
-                          ON DUPLICATE KEY UPDATE cluster_name = '${orchestrator_cluster_name}';
-                        EOF
-
-                  - name: update consul with master the new cluster
-                    shell: |
-                      curl -sS http://${orchestrator}:${orchestrator_port}/api/submit-masters-to-kv-stores > /dev/null
-                      curl -f -sS http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/hostname
-                    register: update_consul
-                    until: ( update_consul.rc == 0 ) and
-                       ( update_consul.stdout | from_json | json_query('[0].Value') | b64decode == "${hostname}.node.${consul_datacenter}.consul" )
-                    delay: 1
-                    retries: 6000
-                when: "{{ bootstrap }}" == true
-            when: '"${consul}" != ""'
+            when: bootstrap == true
 
       - name: haproxy
         hosts: 127.0.0.1
