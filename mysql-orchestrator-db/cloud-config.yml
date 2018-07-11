@@ -35,8 +35,9 @@ write_files:
             register: _mysql_datadir
           - name: bootstrap phase
             block:
-              - uri:
-                  url: http://${consul}:${consul_port}/v1/kv/session/create
+              - name: bootstrap phase - create consul session
+                uri:
+                  url: http://${consul}:${consul_port}/v1/session/create
                   method: PUT
                   status_code: 200
                   body_format: json
@@ -46,7 +47,8 @@ write_files:
                 retries: 6000
               - set_fact:
                   bootstrap_session: "{{ bootstrap_session_consul.json | json_query('ID') }}" 
-              - uri:
+              - name: bootstrap phase - aquire consul lock
+                uri:
                   url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_bootstrap?acquire={{ bootstrap_session }}"
                   method: PUT
                   status_code: 200
