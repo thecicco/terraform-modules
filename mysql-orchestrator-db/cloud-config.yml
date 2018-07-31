@@ -58,10 +58,12 @@ write_files:
                 delay: 1
                 retries: 6000
               - set_fact:
-                  bootstrap: "{{ bootstrap_consul | bool }}" 
+                  bootstrap: "{{ bootstrap_consul.json | bool }}" 
+              - debug: var=bootstrap
           - name: get mysql master from consul
             block:
-              - uri:
+              - name: get master hostname
+                uri:
                   url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/hostname
                   method: GET
                   status_code: 200
@@ -70,7 +72,8 @@ write_files:
                 until: mysql_master_consul.failed == false
                 delay: 1
                 retries: 6000
-              - uri:
+              - name: get master port
+                uri:
                   url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/port
                   method: GET
                   status_code: 200
