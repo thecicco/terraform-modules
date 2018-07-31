@@ -55,7 +55,7 @@ module "external_vip_web" {
 }
 
 module "volume-mysql" {
-  source = "github.com/entercloudsuite/terraform-modules//volume"
+  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.6"
   name = "${var.name}"
   size = "${var.mysql_volume_size}"
   instance = "${module.mysql.instance}"
