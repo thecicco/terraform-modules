@@ -22,7 +22,7 @@ variable "mysql_master_port" {
   default = "3307"
 }
 
-variable "mysql_slave_port" {
+variable "mysql_slaves_port" {
   default = "3308"
 }
 

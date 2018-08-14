@@ -422,7 +422,7 @@ write_files:
                   hold valid 1s
 
               listen slaves
-                  bind *:${mysql_slave_port}
+                  bind *:${mysql_slaves_port}
                   mode tcp
                   option tcp-check
                   tcp-check expect string is\ running.
