@@ -373,12 +373,12 @@ write_files:
                 fi
 
                 CMDLINE="$MYSQL_BIN $MYSQL_OPTS --host=$MYSQL_HOST --port=$MYSQL_PORT --user=$MYSQL_USERNAME --password=$MYSQL_PASSWORD -e"
-                SLAVE_IO=$(${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Slave_IO_Running |  tail -1 | awk {'print $2'})
-                SLAVE_SQL=$(${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Slave_SQL_Running | head -1 | awk {'print $2'})
+                SLAVE_IO=$($${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Slave_IO_Running |  tail -1 | awk {'print $2'})
+                SLAVE_SQL=$($${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Slave_SQL_Running | head -1 | awk {'print $2'})
 
-                if [[ "${SLAVE_IO}" == "Yes" ]] && [[ "${SLAVE_SQL}" == "Yes" ]]; then
+                if [[ "$${SLAVE_IO}" == "Yes" ]] && [[ "$${SLAVE_SQL}" == "Yes" ]]; then
                     role='slave'
-                    SLAVE_LAG=$(${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Seconds_Behind_Master | tail -1 | awk {'print $2'})
+                    SLAVE_LAG=$($${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Seconds_Behind_Master | tail -1 | awk {'print $2'})
                     if [[ $SLAVE_LAG = 0 ]]; then
                         return_ok
                     elif [[ $SLAVE_LAG < $SLAVE_LAG_LIMIT ]] ; then
@@ -389,7 +389,7 @@ write_files:
                     if [ $MASTER_SLAVE_HOSTS -gt 1 ]; then
                         role='master'
                         READ_ONLY=$($CMDLINE 'SHOW GLOBAL VARIABLES LIKE "read_only"' --vertical 2>/dev/null | tail -1 | awk {'print $2'})
-                        [[ "${READ_ONLY}" == "OFF" ]] && return_ok
+                        [[ "$${READ_ONLY}" == "OFF" ]] && return_ok
                     fi
                 fi
 
