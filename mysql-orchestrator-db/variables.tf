@@ -18,6 +18,14 @@ variable "mysql_port" {
   default = "3306"
 }
 
+variable "mysql_master_port" {
+  default = "3307"
+}
+
+variable "mysql_slave_port" {
+  default = "3308"
+}
+
 variable "mysql_datadir" {
   default = "/var/lib/mysql-orchestrator"
 }
