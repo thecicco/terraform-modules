@@ -293,7 +293,7 @@ write_files:
           - name: add service
             lineinfile:
               path: /etc/service
-              ragexp: '^mysqlchk'
+              regexp: '^mysqlchk'
               line: 'mysqlchk 9300/tcp # mysqlchk for slaves'
           - name: add script mysqlchk
             copy:
