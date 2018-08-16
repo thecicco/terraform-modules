@@ -427,7 +427,7 @@ write_files:
                   option tcp-check
                   tcp-check expect string is\ running.
                   balance leastconn
-                  server-template swarm-worker 0-99 ${name}.service.automium.consul:${mysql_port} check port 9300 resolvers dns-consul
+                  server-template mysql 0-99 ${name}.service.automium.consul:${mysql_port} check port 9300 resolvers dns-consul
           - role: entercloudsuite.consul-template
             consul_template_use_systemd: true
             consul_template_consul_server: ${consul}
