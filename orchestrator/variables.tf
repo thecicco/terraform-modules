@@ -62,6 +62,18 @@ variable "orchestrator_password" {
   default = ""
 }
 
+variable "orchestrator_authentication_method" {
+  default = ""
+}
+
+variable "orchestrator_http_auth_user" {
+  default = ""
+}
+
+variable "orchestrator_http_auth_password" {
+  default = ""
+}
+
 variable "orchestrator_raft_enabled" {
   default = "false"
 }
