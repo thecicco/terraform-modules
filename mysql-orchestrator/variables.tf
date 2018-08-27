@@ -5,9 +5,6 @@ variable "orchestrator_quantity" {
   default = 3
 }
 
-variable "orchestrator_ip" {
-}
-
 variable "orchestrator_subnet" {
   default = ""
 }
@@ -17,9 +14,6 @@ variable "name" {
 
 variable "mysql_flavor" {
   default = "e3standard.x3"
-}
-
-variable "mysql_ip" {
 }
 
 variable "mysql_subnet" {

@@ -10,7 +10,6 @@ module "mysql" {
   discovery = "${var.discovery}"
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
-  allowed_address_pairs = "${var.mysql_ip == "" ? "127.0.0.1" : var.mysql_ip}/32"
   tags = {
     "server_group" = "MYSQL"
   }
@@ -23,7 +22,6 @@ data "template_file" "cloud-config" {
     name = "${var.name}"
     number = "${count.index}"
     hostname = "${var.name}-${count.index}"
-    mysql_ip = "${var.mysql_ip}"
     mysql_port = "${var.mysql_port}"
     mysql_master_port = "${var.mysql_master_port}"
     mysql_slaves_port = "${var.mysql_slaves_port}"

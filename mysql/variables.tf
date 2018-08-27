@@ -14,14 +14,6 @@ variable "mysql_vip" {
   default = "false"
 }
 
-variable "mysql_ip" {
-  default = "1.1.1.1"
-}
-
-variable "mysql_subnet" {
-  default = ""
-}
-
 variable "mysql_port" {
   default = "3306"
 }

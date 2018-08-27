@@ -10,7 +10,6 @@ module "orchestrator" {
   discovery = "${var.discovery}"
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
-  allowed_address_pairs = "${var.orchestrator_ip == "" ? "127.0.0.1" : var.orchestrator_ip}/32"
   tags = {
     "server_group" = "ORCHESTRATOR"
   }
@@ -36,12 +35,4 @@ data "template_file" "cloud-config" {
     consul_datacenter = "${var.consul_datacenter}" 
     consul_encrypt = "${var.orchestrator_encrypt}" 
   }
-}
-
-module "external_vip_web" {
-  name = "${var.name}-vip"
-  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.7-devel"
-  external_vip = "${var.orchestrator_ip}"
-  network_name = "${var.network_name}"
-  discovery = "${var.discovery}"
 }

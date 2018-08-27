@@ -10,7 +10,6 @@ module "mysql" {
   discovery = "${var.discovery}"
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
-  allowed_address_pairs = "${var.mysql_ip}/32"
   tags = {
     "server_group" = "MYSQL"
   }
