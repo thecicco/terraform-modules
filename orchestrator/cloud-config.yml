@@ -91,7 +91,7 @@ write_files:
                 services:
                   - name: "${name}"
                     checks:
-                      - http: "http://${mysql_admin_name}:${mysql_admin_password}@127.0.0.1:8282"
+                      - http: "http://${orchestrator_user}:${orchestrator_password}@127.0.0.1:8282"
                         method: "GET"
                         interval: "10s"
                 rejoin_after_leave: true
