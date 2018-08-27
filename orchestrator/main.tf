@@ -26,6 +26,7 @@ data "template_file" "cloud-config" {
     orchestrator_service_port = "${var.orchestrator_service_port}" 
     orchestrator_user = "${var.orchestrator_user}" 
     orchestrator_password = "${var.orchestrator_password}" 
+    orchestrator_authentication_method = "${var.orchestrator_authentication_method}"
     orchestrator_raft_enabled = "${var.orchestrator_raft_enabled}" 
     orchestrator_raft_data_dir = "${var.orchestrator_raft_data_dir}" 
     orchestrator_raft_default_port = "${var.orchestrator_raft_default_port}" 
