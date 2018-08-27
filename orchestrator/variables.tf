@@ -6,22 +6,6 @@ variable "name" {
   default = "orchestrator"
 }
 
-variable "orchestrator_vip" {
-  default = "false"
-}
-
-variable "orchestrator_ip" {
-  default = "1.1.1.1"
-}
-
-variable "orchestrator_subnet" {
-  default = ""
-}
-
-variable "orchestrator_virtual_router_id" {
-  default = ""
-}
-
 variable "orchestrator_port" {
   default = "80"
 }
@@ -39,6 +23,10 @@ variable "consul_port" {
 }
 
 variable "consul_datacenter" {
+  default = ""
+}
+
+variable "consul_encrypt" {
   default = ""
 }
 

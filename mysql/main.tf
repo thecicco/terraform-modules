@@ -23,7 +23,6 @@ data "template_file" "cloud-config" {
     name = "${var.name}"
     number = "${count.index}"
     hostname = "${var.name}-${count.index}"
-    mysql_virtual_router_id = "${var.mysql_virtual_router_id}"
     mysql_root_name = "${var.mysql_root_name}"
     mysql_root_password = "${var.mysql_root_password}"
     mysql_admin_name = "${var.mysql_admin_name}"

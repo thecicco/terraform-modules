@@ -26,10 +26,6 @@ variable "mysql_port" {
   default = "3306"
 }
 
-variable "mysql_virtual_router_id" {
-  default = ""
-}
-
 variable "orchestrator" {
   default = ""
 }

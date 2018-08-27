@@ -24,11 +24,9 @@ data "template_file" "cloud-config" {
     number = "${count.index}"
     hostname = "${var.name}-${count.index}"
     mysql_ip = "${var.mysql_ip}"
-    mysql_subnet = "${var.mysql_subnet}"
     mysql_port = "${var.mysql_port}"
     mysql_master_port = "${var.mysql_master_port}"
     mysql_slaves_port = "${var.mysql_slaves_port}"
-    mysql_virtual_router_id = "${var.mysql_virtual_router_id}"
     mysql_root_name = "${var.mysql_root_name}"
     mysql_root_password = "${var.mysql_root_password}"
     mysql_admin_name = "${var.mysql_admin_name}"
@@ -38,6 +36,7 @@ data "template_file" "cloud-config" {
     consul = "${var.consul}" 
     consul_port = "${var.consul_port}" 
     consul_datacenter = "${var.consul_datacenter}" 
+    consul_encrypt = "${var.consul_encrypt}" 
     orchestrator = "${var.orchestrator}" 
     orchestrator_port = "${var.orchestrator_port}" 
     orchestrator_user = "${var.orchestrator_user}" 
@@ -46,14 +45,6 @@ data "template_file" "cloud-config" {
     private_ssh_key = "${indent(16,var.private_ssh_key)}"
     mysql_datadir = "${var.mysql_datadir}"
   }
-}
-
-module "external_vip_web" {
-  name = "${var.name}-vip"
-  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.7-devel"
-  external_vip = "${var.mysql_ip}"
-  network_name = "${var.network_name}"
-  discovery = "${var.discovery}"
 }
 
 module "volume-mysql" {

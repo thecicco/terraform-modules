@@ -12,9 +12,6 @@ variable "orchestrator_subnet" {
   default = ""
 }
 
-variable "orchestrator_virtual_router_id" {
-}
-
 variable "name" {
 }
 
@@ -30,9 +27,6 @@ variable "mysql_subnet" {
 
 variable "mysql_port" {
   default = "3306"
-}
-
-variable "mysql_virtual_router_id" {
 }
 
 variable "mysql_volume_size" { 
@@ -58,6 +52,9 @@ variable "consul_port" {
 }
 
 variable "consul_datacenter" {
+}
+
+variable "consul_encrypt" {
 }
 
 variable "mysql_admin_name" {

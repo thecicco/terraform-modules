@@ -438,32 +438,30 @@ write_files:
                 perms: 666
                 backup: true
                 wait: '0s'
-          - role: entercloudsuite.keepalived
-            keepalived_options:
-              - name: log-detail
-            keepalived_vrrp_scripts:
-              chk_haproxy:
-                script: '/bin/pidof haproxy'
-                weight: 100
-                interval: 1
-
-            keepalived_vrrp_instances:
-              VI_1:
-                interface: "{{ ansible_default_ipv4.interface }}"
-                state: "{% if ${number} == 0 %}MASTER{% else %}BACKUP{% endif %}"
-                priority: "{{ 110 - ${number}0 }}"
-                virtual_router_id: ${mysql_virtual_router_id}
-
-                authentication:
-                  auth_type: PASS
-                  auth_pass: '${mysql_admin_password}'
-
-                virtual_ipaddresses:
-                  - '${mysql_ip}/${mysql_subnet} dev {{ ansible_default_ipv4.interface }} label {{ ansible_default_ipv4.interface }}:1'
-
-                track_scripts:
-                  - chk_haproxy
-            when: ("${mysql_ip}" != "")
+          - role: entercloudsuite.consul
+            consul_version: 1.2.2
+            consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
+            consul_configs:
+              main:
+                bind_addr: 0.0.0.0
+                client_addr: 0.0.0.0
+                node_name: "{{ ansible_hostname }}"
+                data_dir: "{{ consul_data_dir }}"
+                encrypt: "tmxPrOlbwParEJ73hDrUOA=="
+                datacenter: automium
+                enable_syslog: true
+                server: false
+                ui: true
+                enable_script_checks: true
+                services:
+                  - name: "${name}"
+                    checks:
+                      - http: "http://${mysql_admin_name}:${mysql_admin_password}@127.0.0.1:8282"
+                        method: "GET"
+                        interval: "10s"
+                rejoin_after_leave: true
+                retry_join:
+                  - "${consul}"
 
     path: /tmp/cloud/playbook.yml
     permissions: '0400'
@@ -485,7 +483,7 @@ write_files:
     permissions: '0400'
 
   - content: |
-      ansible==2.5.1
+      ansible==2.6.2
       asn1crypto==0.23.0
       bcrypt==3.1.4
       cffi==1.11.2

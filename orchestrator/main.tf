@@ -23,10 +23,7 @@ data "template_file" "cloud-config" {
     name = "${var.name}"
     number = "${count.index}"
     hostname = "${var.name}-${count.index}"
-    orchestrator_ip = "${var.orchestrator_ip}" 
-    orchestrator_subnet = "${var.orchestrator_subnet}" 
     orchestrator_port = "${var.orchestrator_port}" 
-    orchestrator_virtual_router_id = "${var.orchestrator_virtual_router_id}" 
     orchestrator_service_port = "${var.orchestrator_service_port}" 
     orchestrator_user = "${var.orchestrator_user}" 
     orchestrator_password = "${var.orchestrator_password}" 
@@ -37,6 +34,7 @@ data "template_file" "cloud-config" {
     consul = "${var.consul}" 
     consul_port = "${var.consul_port}" 
     consul_datacenter = "${var.consul_datacenter}" 
+    consul_encrypt = "${var.orchestrator_encrypt}" 
   }
 }
 

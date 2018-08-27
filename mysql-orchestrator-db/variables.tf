@@ -6,14 +6,6 @@ variable "name" {
   default = "mysql"
 }
 
-variable "mysql_ip" {
-  default = ""
-}
-
-variable "mysql_subnet" {
-  default = ""
-}
-
 variable "mysql_port" {
   default = "3306"
 }
@@ -28,10 +20,6 @@ variable "mysql_slaves_port" {
 
 variable "mysql_datadir" {
   default = "/var/lib/mysql-orchestrator"
-}
-
-variable "mysql_virtual_router_id" {
-  default = ""
 }
 
 variable "mysql_volume_size" {
@@ -61,7 +49,9 @@ variable "consul_port" {
 }
 
 variable "consul_datacenter" {
-  default = ""
+}
+
+variable "consul_encrypt" {
 }
 
 variable "mysql_root_name" {

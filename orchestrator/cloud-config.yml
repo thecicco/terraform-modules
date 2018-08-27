@@ -73,32 +73,31 @@ write_files:
                   server ${name}-0 ${name}-0.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:${orchestrator_service_port} check
-          - role: entercloudsuite.keepalived
-            keepalived_options:
-              - name: log-detail
-            keepalived_vrrp_scripts:
-              chk_haproxy:
-                script: '/bin/pidof haproxy'
-                weight: 100
-                interval: 1
-
-            keepalived_vrrp_instances:
-              VI_1:
-                interface: "{{ ansible_default_ipv4.interface }}"
-                state: "{% if ${number} == 0 %}MASTER{% else %}BACKUP{% endif %}"
-                priority: "{{ 110 - ${number}0 }}"
-                virtual_router_id: ${orchestrator_virtual_router_id}
-
-                authentication:
-                  auth_type: PASS
-                  auth_pass: '${orchestrator_password}'
-
-                virtual_ipaddresses:
-                  - '${orchestrator_ip}/${orchestrator_subnet} dev {{ ansible_default_ipv4.interface }} label {{ ansible_default_ipv4.interface }}:1'
-
-                track_scripts:
-                  - chk_haproxy
-            when: ("${orchestrator_ip}" != "")
+          - role: entercloudsuite.consul
+            consul_version: 1.2.2
+            consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
+            consul_configs:
+              main:
+                bind_addr: 0.0.0.0
+                client_addr: 0.0.0.0
+                node_name: "{{ ansible_hostname }}"
+                data_dir: "{{ consul_data_dir }}"
+                encrypt: "${consul_encrypt}"
+                datacenter: "${consul_datacenter}"
+                enable_syslog: true
+                server: false
+                ui: true
+                enable_script_checks: true
+                services:
+                  - name: "${name}"
+                    checks:
+                      - http: "http://${mysql_admin_name}:${mysql_admin_password}@127.0.0.1:8282"
+                        method: "GET"
+                        interval: "10s"
+                rejoin_after_leave: true
+                retry_join:
+                  - "${consul}"
+            when: ("${consul}" != "")
 
     path: /tmp/cloud/playbook.yml
     permissions: '0400'
