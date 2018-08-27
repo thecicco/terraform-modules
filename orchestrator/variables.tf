@@ -23,11 +23,9 @@ variable "consul_port" {
 }
 
 variable "consul_datacenter" {
-  default = ""
 }
 
 variable "consul_encrypt" {
-  default = ""
 }
 
 variable "mysql_root_name" {
