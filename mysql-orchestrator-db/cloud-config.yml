@@ -479,6 +479,8 @@ write_files:
         version: 1.0.0
       - src: entercloudsuite.filesystem
         version: 1.0.1
+      - src: entercloudsuite.consul
+        version: 1.0.1
     path: /tmp/cloud/requirements.yml
     permissions: '0400'
 
