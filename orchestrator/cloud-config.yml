@@ -64,7 +64,7 @@ write_files:
               listen orchestrator
                   bind  *:${orchestrator_port}
                   mode tcp
-                  option httpchk GET /api/leader-check HTTP/1.0\r\nAuthorization:\ Basic\ {{ orchestrator_http_auth_basic }}
+                  option httpchk GET /api/leader-check HTTP/1.0\r\nAuthorization:\ Basic\ {{ orchestrator_http_auth_basic | b64encode }}
                   balance first
                   retries 1
                   timeout connect 1000
