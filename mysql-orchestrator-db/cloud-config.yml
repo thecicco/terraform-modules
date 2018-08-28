@@ -230,7 +230,7 @@ write_files:
         tasks:
           - name: register host to orchestrator
             uri:
-              url: http://${mysql_admin_name}:${mysql_admin_password}@${orchestrator}:${orchestrator_port}/api/discover/${hostname}.node.${consul_datacenter}.consul/${mysql_port}
+              url: http://${orchestrator}:${orchestrator_port}/api/discover/${hostname}.node.${consul_datacenter}.consul/${mysql_port}
               method: GET
               status_code: 200
               body_format: json
