@@ -4,6 +4,8 @@ write_files:
   - content: |
       - name: install orchestrator
         hosts: 127.0.0.1
+        vars:
+          orchestrator_http_auth_basic: '${orchestrator_http_auth_user}:${orchestrator_http_auth_password}'
         pre_tasks:
           - name: install curl
             package: name=curl
@@ -62,7 +64,7 @@ write_files:
               listen orchestrator
                   bind  *:${orchestrator_port}
                   mode tcp
-                  option httpchk GET /api/leader-check
+                  option httpchk GET /api/leader-check HTTP/1.0\r\nAuthorization:\ Basic\ {{ orchestrator_http_auth_basic }}
                   balance first
                   retries 1
                   timeout connect 1000
