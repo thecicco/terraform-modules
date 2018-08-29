@@ -95,7 +95,7 @@ write_files:
                 copy: content="{{ ssh_key_consul.json[0] | json_query('Value') | b64decode }}" dest=/root/.ssh/id_rsa.enc
 
               - name: decrypt ssh keys
-                shell: openssl rsa -in /root/.ssh/id_rsa.enc -out /root/.ssh/id_rsa
+                shell: openssl rsa -in /root/.ssh/id_rsa.enc -out /root/.ssh/id_rsa -passin pass:${mysql_admin_password}
                 args:
                   creates: /root/.ssh/id_rsa
 
