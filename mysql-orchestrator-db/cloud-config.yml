@@ -15,14 +15,6 @@ write_files:
       - name: copy master mysql data
         hosts: 127.0.0.1
         pre_tasks:
-          - name: generate public key from private
-            shell: ssh-keygen -y -f /root/.ssh/id_rsa > /root/.ssh/id_rsa.pub
-            args:
-              creates: /root/.ssh/id_rsa.pub
-          - name: enable ssh key for direct root access
-            authorized_key:
-              user: root
-              key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
           - name: check that the dir ${mysql_datadir}/mysql exist
             stat:
               path: ${mysql_datadir}/mysql
@@ -120,6 +112,11 @@ write_files:
 
               - name: write public ssh key
                 copy: content="{{ ssh_key_pub_consul | b64decode }}" dest=/root/.ssh/id_rsa.pub
+
+              - name: enable ssh key for direct root access
+                authorized_key:
+                  user: root
+                  key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
 
             when: ( bootstrap == false)
 
