@@ -91,8 +91,8 @@ write_files:
                 delay: 1
                 retries: 6000
 
-              - name: write private ssh key in a temp di before decrypt
-                copy: content="{{ ssh_key_consul | b64decode }}" dest=/root/.ssh/id_rsa.enc
+              - name: write private encrypted ssh key
+                copy: content="{{ ssh_key_consul.json | json_query('Value') | b64decode }}" dest=/root/.ssh/id_rsa.enc
 
               - name: decrypt ssh keys
                 shell: openssl rsa -in /root/.ssh/id_rsa.enc -out /root/.ssh/id_rsa
@@ -111,7 +111,7 @@ write_files:
                 retries: 6000
 
               - name: write public ssh key
-                copy: content="{{ ssh_key_pub_consul | b64decode }}" dest=/root/.ssh/id_rsa.pub
+                copy: content="{{ ssh_key_pub_consul.json | json_query('Value') | b64decode }}" dest=/root/.ssh/id_rsa.pub
 
               - name: enable ssh key for direct root access
                 authorized_key:
@@ -277,7 +277,7 @@ write_files:
                   url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key"
                   method: PUT
                   status_code: 200
-                  body: 'file(/tmp/id_rsa)'
+                  body: "{{ lookup('file', '/tmp/id_rsa') }}"
                 register: ssh_key_consul
                 until: ssh_key_consul.failed == false
                 delay: 1
@@ -288,7 +288,7 @@ write_files:
                   url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key_pub"
                   method: PUT
                   status_code: 200
-                  body: 'file(/tmp/id_rsa.pub)'
+                  body: "{{ lookup('file', '/tmp/id_rsa.pub') }}"
                 register: ssh_key_pub_consul
                 until: ssh_key_pub_consul.failed == false
                 delay: 1
