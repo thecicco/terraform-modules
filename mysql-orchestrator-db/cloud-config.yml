@@ -92,10 +92,13 @@ write_files:
             retries: 6000
 
           - name: write private encrypted ssh key
-            copy: content="{{ ssh_key_consul.json[0] | json_query('Value') | b64decode }}" dest=/root/.ssh/id_rsa.enc
+            copy:
+              content: "{{ ssh_key_consul.json[0] | json_query('Value') | b64decode }}"
+              dest: /root/.ssh/id_rsa.enc
+              mode: 0400
 
           - name: decrypt ssh keys
-            shell: openssl rsa -in /root/.ssh/id_rsa.enc -out /root/.ssh/id_rsa -passin pass:${mysql_admin_password}
+            shell: openssl rsa -in /root/.ssh/id_rsa.enc -out /root/.ssh/id_rsa -passin pass:${mysql_admin_password} && chmod 400 /root/.ssh/id_rsa
             args:
               creates: /root/.ssh/id_rsa
 
@@ -111,7 +114,10 @@ write_files:
             retries: 6000
 
           - name: write public ssh key
-            copy: content="{{ ssh_key_pub_consul.json[0] | json_query('Value') | b64decode }}" dest=/root/.ssh/id_rsa.pub
+            copy:
+              content: "{{ ssh_key_pub_consul.json[0] | json_query('Value') | b64decode }}"
+              dest: /root/.ssh/id_rsa.pub
+              mode: 0400
 
           - name: enable ssh key for direct root access
             authorized_key:
