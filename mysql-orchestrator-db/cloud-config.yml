@@ -1,0 +1,611 @@
+#cloud-config
+
+write_files:
+  - content: |
+      - name: format volume
+        hosts: 127.0.0.1
+        roles:
+          - role: entercloudsuite.filesystem
+            disk_additional_disks:
+              - disk: /dev/vdb
+                fstype: xfs
+                mount_options: defaults
+                mount: ${mysql_datadir}
+
+      - name: bootstrap phase
+        hosts: 127.0.0.1
+        tasks:
+          - name: bootstrap phase - create consul session
+            uri:
+              url: http://${consul}:${consul_port}/v1/session/create
+              method: PUT
+              status_code: 200
+              body_format: json
+            register: bootstrap_session_consul
+            until: bootstrap_session_consul.failed == false
+            delay: 1
+            retries: 6000
+          - set_fact:
+              bootstrap_session: "{{ bootstrap_session_consul.json | json_query('ID') }}" 
+          - name: bootstrap phase - aquire consul lock
+            uri:
+              url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_bootstrap?acquire={{ bootstrap_session }}"
+              method: PUT
+              status_code: 200
+              body: '{ name: ${hostname}.node.${consul_datacenter}.consul }'
+            register: bootstrap_consul
+            until: bootstrap_consul.failed == false
+            delay: 1
+            retries: 6000
+          - set_fact:
+              bootstrap: "{{ bootstrap_consul.json | bool }}" 
+
+      - name: generate and spread ssh keys
+        hosts: 127.0.0.1
+        tasks:
+          - block:
+              - name: generate ssh keys
+                shell: ssh-keygen -b 2048 -t rsa -f /tmp/id_rsa -q -N "" -P ${mysql_admin_password}
+                args:
+                  creates: /tmp/id_rsa
+
+              - name: put private ssh key
+                uri:
+                  url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key"
+                  method: PUT
+                  status_code: 200
+                  body: "{{ lookup('file', '/tmp/id_rsa') }}"
+                register: ssh_key_consul
+                until: ssh_key_consul.failed == false
+                delay: 1
+                retries: 6000
+
+              - name: put public ssh key
+                uri:
+                  url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key_pub"
+                  method: PUT
+                  status_code: 200
+                  body: "{{ lookup('file', '/tmp/id_rsa.pub') }}"
+                register: ssh_key_pub_consul
+                until: ssh_key_pub_consul.failed == false
+                delay: 1
+                retries: 6000
+
+              - name: remove keys from temp dir
+                file:
+                  path: "{{ item }}"
+                  state: absent
+                with_items:
+                  - /tmp/id_rsa
+                  - /tmp/id_rsa.pub
+            when: bootstrap == true
+
+          - name: get private ssh key
+            uri:
+              url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key
+              method: GET
+              status_code: 200
+              body_format: json
+            register: ssh_key_consul
+            until: ssh_key_consul.failed == false
+            delay: 1
+            retries: 6000
+
+          - name: write private encrypted ssh key
+            copy:
+              content: "{{ ssh_key_consul.json[0] | json_query('Value') | b64decode }}"
+              dest: /root/.ssh/id_rsa.enc
+              mode: 0400
+
+          - name: decrypt ssh keys
+            shell: openssl rsa -in /root/.ssh/id_rsa.enc -out /root/.ssh/id_rsa -passin pass:${mysql_admin_password} && chmod 400 /root/.ssh/id_rsa
+            args:
+              creates: /root/.ssh/id_rsa
+
+          - name: get public ssh key
+            uri:
+              url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key_pub
+              method: GET
+              status_code: 200
+              body_format: json
+            register: ssh_key_pub_consul
+            until: ssh_key_pub_consul.failed == false
+            delay: 1
+            retries: 6000
+
+          - name: write public ssh key
+            copy:
+              content: "{{ ssh_key_pub_consul.json[0] | json_query('Value') | b64decode }}"
+              dest: /root/.ssh/id_rsa.pub
+              mode: 0400
+
+          - name: enable ssh key for direct root access
+            authorized_key:
+              user: root
+              key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+
+      - name: copy master mysql data
+        hosts: 127.0.0.1
+        pre_tasks:
+          - name: check that the dir ${mysql_datadir}/mysql exist
+            stat:
+              path: ${mysql_datadir}/mysql
+            register: _mysql_datadir
+          - name: get mysql master from consul
+            block:
+              - name: get master hostname
+                uri:
+                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/hostname
+                  method: GET
+                  status_code: 200
+                  body_format: json
+                register: mysql_master_consul
+                until: mysql_master_consul.failed == false
+                delay: 1
+                retries: 6000
+              - name: get master port
+                uri:
+                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/port
+                  method: GET
+                  status_code: 200
+                  body_format: json
+                register: mysql_master_port_consul
+                until: mysql_master_port_consul.failed == false
+                delay: 1
+                retries: 6000
+              - set_fact:
+                  mysql_master: "{{ mysql_master_consul.json | json_query('[0].Value') | b64decode }}" 
+              - set_fact:
+                  mysql_master_port: "{{ mysql_master_port_consul.json | json_query('[0].Value') | b64decode }}" 
+              - name: wait until ssh and mysql is available on "{{ mysql_master }}:{{ mysql_master_port }}"
+                wait_for:
+                  host: "{{ mysql_master }}"
+                  port: "{{ item }}"
+                  timeout: 6000
+                with_items:
+                  - 22
+                  - "{{ mysql_master_port }}"
+
+            when: ( bootstrap == false)
+        roles:
+          - role: entercloudsuite.mysql-innobackupex
+            innobackupex_source_server: "{{ mysql_master }}"
+            innobackupex_destination: ${mysql_datadir}
+            when: ( bootstrap == false ) and
+                  ( _mysql_datadir.stat.exists == false )
+        post_tasks:
+          - name: create mysql user
+            user:
+              name: mysql
+              comment: "MySQL Server"
+              shell: /bin/false
+              home: /var/lib/mysql
+          - name: fix permission
+            file: path=${mysql_datadir} recurse=yes owner=mysql group=mysql
+          - name: setup client password
+            copy:
+              dest: /root/.my.cnf
+              content: |
+                [client]
+                user=${mysql_root_name}
+                password=${mysql_root_password}
+
+      - name: install mysql
+        hosts: 127.0.0.1
+        pre_tasks:
+          - name: install curl
+            package: name=curl
+          - name: install percona mysql repo
+            shell: curl -O https://repo.percona.com/apt/percona-release_0.1-4.$(lsb_release -sc)_all.deb && dpkg -i percona-release_0.1-4.$(lsb_release -sc)_all.deb
+            args:
+              creates: /etc/apt/sources.list.d/percona-release.list
+              executable: /bin/bash
+              chdir: /tmp
+          - name: refresh apt cache
+            apt:
+              update_cache: yes
+          - name: create /etc/mysql
+            file: path=/etc/mysql state=directory
+          - name: add custom mysql config file
+            copy:
+              dest: custom.cnf
+              content: |
+                [mysqld]
+                enforce_gtid_consistency        = ON
+                gtid_mode                       = ON
+                report-host                     = ${hostname}.node.${consul_datacenter}.consul
+                log-slave-updates               = 1
+                relay_log_info_repository       = TABLE
+                master_info_repository          = TABLE
+        roles:
+          - role: entercloudsuite.mysql
+            mysql_root_username: ${mysql_root_name}
+            mysql_root_password: ${mysql_root_password}
+            mysql_packages:
+              - percona-server-server-5.7
+              - percona-xtrabackup-24
+            mysql_datadir: ${mysql_datadir}
+            mysql_replication_master: 127.0.0.1
+            mysql_replication_role: master
+            mysql_server_id: "{{ 4294967294 | random }}"
+            mysql_max_binlog_size: 500M
+            mysql_config_include_files:
+              - src: custom.cnf
+        post_tasks:
+          - name: create mysql admin ${mysql_admin_name}
+            mysql_user:
+              name: ${mysql_admin_name}
+              host: '%'
+              password: ${mysql_admin_password}
+              priv: '*.*:ALL,GRANT'
+          - block:
+              - name: create mysql user ${mysql_replica_user_name}
+                mysql_user:
+                  name: ${mysql_replica_user_name}
+                  host: '%'
+                  password: ${mysql_replica_user_password}
+                  priv: '*.*:REPLICATION SLAVE,REPLICATION CLIENT'
+              - name: create mysql user ${orchestrator_user}
+                mysql_user:
+                  name: ${orchestrator_user}
+                  host: '%'
+                  password: ${orchestrator_password}
+                  priv: '*.*:RELOAD,PROCESS,SUPER,REPLICATION SLAVE,REPLICATION CLIENT'
+              - name: add permission to read mysql.slave_master_info to mysql user ${orchestrator_user}
+                mysql_user:
+                  name: ${orchestrator_user}
+                  host: '%'
+                  password: ${orchestrator_password}
+                  priv: 'mysql.slave_master_info:SELECT'
+                  append_privs: yes
+              - name: add permission to read meta.* to mysql user ${orchestrator_user}
+                mysql_user:
+                  name: ${orchestrator_user}
+                  host: '%'
+                  password: ${orchestrator_password}
+                  priv: 'meta.*:SELECT'
+                  append_privs: yes
+            when: '"${consul}" != ""'
+          - name: check that the slave coordination file exist
+            stat:
+              path: ${mysql_datadir}/xtrabackup_binlog_info
+            register: _xtrabackup_binlog_info
+          - name: set up replica
+            block:
+              - name: set read only at runtime
+                shell: >
+                  mysql -uroot -p${mysql_root_password} -e "set global read_only=true"
+              - name: get gtid position
+                shell: cat ${mysql_datadir}/xtrabackup_binlog_info | cut -f3
+                register: _gtid_position
+              - name: reset master status on slave node
+                shell: >
+                  mysql -uroot -p${mysql_root_password} -e "RESET MASTER"
+              - name: set lastest purged gtid
+                shell: >
+                  mysql -uroot -p${mysql_root_password} -e "SET GLOBAL gtid_purged=\"{{ _gtid_position.stdout }}\";"
+              - name: target master server
+                shell: >
+                  mysql -uroot -p${mysql_root_password} -e "CHANGE MASTER TO MASTER_HOST=\"{{ mysql_master }}\", MASTER_PORT={{ mysql_master_port }}, MASTER_USER=\"${mysql_replica_user_name}\", MASTER_PASSWORD=\"${mysql_replica_user_password}\", MASTER_AUTO_POSITION = 1;"
+              - name: start slave
+                shell: >
+                  mysql -uroot -p${mysql_root_password} -e "START SLAVE\G;"
+              - name: delete ${mysql_datadir}/xtrabackup_binlog_info file
+                file: path=${mysql_datadir}/xtrabackup_binlog_info state=absent
+            when: ( bootstrap == false ) and
+                  ( _xtrabackup_binlog_info.stat.exists == True )
+
+      - name: register node
+        hosts: 127.0.0.1
+        tasks:
+          - name: register host to orchestrator
+            uri:
+              url: http://${orchestrator}:${orchestrator_port}/api/discover/${hostname}.node.${consul_datacenter}.consul/${mysql_port}
+              method: GET
+              status_code: 200
+              body_format: json
+              user: ${mysql_admin_name}
+              password: ${mysql_admin_password}
+              force_basic_auth: yes
+            register: register_orchestrator
+            until: register_orchestrator.failed == false
+            delay: 1
+            retries: 6000
+
+          - block:
+              - name: setup meta table
+                shell:
+                  cmd: |
+                    mysql -uroot -p${mysql_root_password} << EOF
+                      CREATE DATABASE IF NOT EXISTS meta;
+                      CREATE TABLE IF NOT EXISTS meta.cluster (
+                        id int NOT NULL,
+                        cluster_name varchar(255),
+                        cluster_domain varchar(255),
+                        anchor bool,
+                        PRIMARY KEY (id)
+                      );
+                      INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${orchestrator_cluster_name}', 1)
+                      ON DUPLICATE KEY UPDATE cluster_name = '${orchestrator_cluster_name}';
+                    EOF
+
+              - name: update consul with master the new cluster
+                shell: |
+                  curl -sS http://${mysql_admin_name}:${mysql_admin_password}@${orchestrator}:${orchestrator_port}/api/submit-masters-to-kv-stores > /dev/null
+                  curl -f -sS http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/hostname
+                register: update_consul
+                until: ( update_consul.rc == 0 ) and
+                   ( update_consul.stdout | from_json | json_query('[0].Value') | b64decode == "${hostname}.node.${consul_datacenter}.consul" )
+                delay: 1
+                retries: 6000
+            when: bootstrap == true
+
+      - name: haproxy
+        hosts: 127.0.0.1
+        pre_tasks:
+          - name: install xinetd
+            package: name=xinetd
+          - name: add xinetd check
+            copy:
+              dest: /etc/xinetd.d/mysqlchk
+              content: |
+                # default: on
+                # description: checkwrite
+                service mysqlchk
+                {
+                        disable = no
+                        flags = REUSE
+                        socket_type = stream
+                        port = 9300
+                        wait = no
+                        user = root
+                        server = /usr/local/sbin/mysqlchk
+                        log_on_failure += USERID
+                        per_source = UNLIMITED
+                }
+          - name: add service
+            lineinfile:
+              path: /etc/services
+              regexp: '^mysqlchk'
+              line: 'mysqlchk 9300/tcp # mysqlchk for slaves'
+          - name: add script mysqlchk
+            copy:
+              dest: /usr/local/sbin/mysqlchk
+              mode: 0550
+              content: |
+                #!/bin/bash
+                #
+                # This script checks if a mysql server is healthy running on localhost. It will
+                # return:
+                # "HTTP/1.x 200 OK\r" (if mysql is running smoothly)
+                # - OR -
+                # "HTTP/1.x 500 Internal Server Error\r" (else)
+                #
+                # The purpose of this script is make haproxy capable of monitoring mysql properly
+                #
+                SLAVE_LAG_LIMIT=5
+                MYSQL_HOST="localhost"
+                MYSQL_PORT="${mysql_port}"
+                MYSQL_USERNAME='${mysql_admin_name}'
+                MYSQL_PASSWORD='${mysql_admin_password}'
+                MYSQL_BIN='/usr/bin/mysql'
+                MYSQL_OPTS="-q -A --connect-timeout=10"
+                TMP_FILE="/dev/shm/mysqlchk.$$.out"
+                ERR_FILE="/dev/shm/mysqlchk.$$.err"
+                FORCE_FAIL="/dev/shm/proxyoff"
+
+                preflight_check()
+                {
+                    for I in "$TMP_FILE" "$ERR_FILE"; do
+                        if [ -f "$I" ]; then
+                            if [ ! -w $I ]; then
+                                echo -e "HTTP/1.1 503 Service Unavailable\r\n"
+                                echo -e "Content-Type: Content-Type: text/plain\r\n"
+                                echo -e "\r\n"
+                                echo -e "Cannot write to $I\r\n"
+                                echo -e "\r\n"
+                                exit 1
+                            fi
+                        fi
+                    done
+                }
+
+                return_ok()
+                {
+                    echo -e "HTTP/1.1 200 OK\r\n"
+                    echo -e "Content-Type: text/html\r\n"
+                    echo -e "Content-Length: 43\r\n"
+                    echo -e "\r\n"
+                    if [ $role == "master" ]; then
+                        echo -e "<html><body>MySQL master is running.</body></html>\r\n"
+                    elif [ $role == "slave" ]; then
+                        echo -e "<html><body>MySQL slave is running. (Slave lag: $SLAVE_LAG)</body></html>\r\n"
+                    else
+                        echo -e "<html><body>MySQL is running.</body></html>\r\n"
+                    fi
+                    echo -e "\r\n"
+                  #  rm $ERR_FILE $TMP_FILE
+                    exit 0
+                }
+                return_fail()
+                {
+                    echo -e "HTTP/1.1 503 Service Unavailable\r\n"
+                    echo -e "Content-Type: text/html\r\n"
+                    echo -e "Content-Length: 42\r\n"
+                    echo -e "\r\n"
+                    echo -e "<html><body>MySQL is *down*.</body></html>\r\n"
+                    echo -e "\r\n"
+                    exit 1
+                }
+
+                preflight_check
+
+                if [ -f "$FORCE_FAIL" ]; then
+                        echo "$FORCE_FAIL found" > $ERR_FILE
+                        return_fail
+                fi
+
+                CMDLINE="$MYSQL_BIN $MYSQL_OPTS --host=$MYSQL_HOST --port=$MYSQL_PORT --user=$MYSQL_USERNAME --password=$MYSQL_PASSWORD -e"
+                SLAVE_IO=$($${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Slave_IO_Running |  tail -1 | awk {'print $2'})
+                SLAVE_SQL=$($${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Slave_SQL_Running | head -1 | awk {'print $2'})
+
+                if [[ "$${SLAVE_IO}" == "Yes" ]] && [[ "$${SLAVE_SQL}" == "Yes" ]]; then
+                    role='slave'
+                    SLAVE_LAG=$($${CMDLINE} 'SHOW SLAVE STATUS' --vertical 2>/dev/null | grep Seconds_Behind_Master | tail -1 | awk {'print $2'})
+                    if [[ $SLAVE_LAG = 0 ]]; then
+                        return_ok
+                    elif [[ $SLAVE_LAG < $SLAVE_LAG_LIMIT ]] ; then
+                        return_ok
+                    fi
+                else
+                    MASTER_SLAVE_HOSTS=$($CMDLINE 'SHOW SLAVE HOSTS' 2>/dev/null | wc -l)
+                    if [ $MASTER_SLAVE_HOSTS -gt 1 ]; then
+                        role='master'
+                        READ_ONLY=$($CMDLINE 'SHOW GLOBAL VARIABLES LIKE "read_only"' --vertical 2>/dev/null | tail -1 | awk {'print $2'})
+                        [[ "$${READ_ONLY}" == "OFF" ]] && return_ok
+                    fi
+                fi
+
+                return_fail
+
+          - name: reload xinetd conf
+            service: name=xinetd state=reloaded
+          - name: create consul template folder
+            file:
+              path: /opt/consul-template/templates
+              state: directory
+          - name: copy haproxy conf
+            copy:
+              content: |
+                {% raw %}
+                listen write-pool
+                    bind *:${mysql_master_port}
+                    mode tcp
+                    server {{key "mysql/master/${orchestrator_cluster_name}/hostname"}} {{key "mysql/master/${orchestrator_cluster_name}/ipv4"}}:{{key "mysql/master/${orchestrator_cluster_name}/port"}} check port {{key "mysql/master/${orchestrator_cluster_name}/port"}}
+                {% endraw %}
+              dest: /opt/consul-template/templates/master.ctmpl
+        roles:
+          - role: entercloudsuite.haproxy
+            haproxy_user: ${mysql_admin_name}
+            haproxy_pass: ${mysql_admin_password}
+            haproxy_conf: |
+              resolvers dns-consul
+                  nameserver dns consul.service.${consul_datacenter}.consul:53
+                  accepted_payload_size 8192
+                  hold valid 1s
+
+              listen slaves
+                  bind *:${mysql_slaves_port}
+                  mode tcp
+                  option tcp-check
+                  tcp-check expect string is\ running.
+                  balance leastconn
+                  server-template mysql 0-99 ${name}.service.automium.consul:${mysql_port} check port 9300 resolvers dns-consul
+          - role: entercloudsuite.consul-template
+            consul_template_use_systemd: true
+            consul_template_consul_server: ${consul}
+            consul_template_templates:
+              - name: master.ctmpl
+                dest: /etc/haproxy/conf.d/master.cfg
+                cmd: service haproxy reload || true
+                perms: 666
+                backup: true
+                wait: '0s'
+          - role: entercloudsuite.consul
+            consul_version: 1.2.2
+            consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
+            consul_configs:
+              main:
+                bind_addr: 0.0.0.0
+                client_addr: 0.0.0.0
+                node_name: "{{ ansible_hostname }}"
+                data_dir: "{{ consul_data_dir }}"
+                encrypt: "tmxPrOlbwParEJ73hDrUOA=="
+                datacenter: automium
+                enable_syslog: true
+                server: false
+                ui: true
+                enable_script_checks: true
+                services:
+                  - name: "${name}"
+                    checks:
+                      - http: "http://${mysql_admin_name}:${mysql_admin_password}@127.0.0.1:8282"
+                        method: "GET"
+                        interval: "10s"
+                rejoin_after_leave: true
+                retry_join:
+                  - "${consul}"
+
+    path: /tmp/cloud/playbook.yml
+    permissions: '0400'
+
+  - content: |
+      - src: entercloudsuite.mysql-innobackupex
+        version: 1.0.1
+      - src: entercloudsuite.mysql
+        version: 1.0.0
+      - src: entercloudsuite.haproxy
+        version: 1.1.3
+      - src: entercloudsuite.keepalived
+        version: 1.0.2
+      - src: entercloudsuite.consul-template
+        version: 1.0.0
+      - src: entercloudsuite.filesystem
+        version: 1.0.1
+      - src: entercloudsuite.consul
+        version: 1.0.1
+    path: /tmp/cloud/requirements.yml
+    permissions: '0400'
+
+  - content: |
+      ansible==2.6.2
+      asn1crypto==0.23.0
+      bcrypt==3.1.4
+      cffi==1.11.2
+      cryptography==2.1.3
+      enum34==1.1.6
+      idna==2.6
+      ipaddress==1.0.18
+      Jinja2==2.10
+      MarkupSafe==1.0
+      paramiko==2.4.0
+      pyasn1==0.3.7
+      pycparser==2.18
+      pycrypto==2.6.1
+      PyNaCl==1.2.0
+      PyYAML==3.12
+      six==1.11.0
+      jmespath==0.9.3
+    path: /tmp/cloud/requirements.txt
+    permissions: '0400'
+
+runcmd:
+  - |
+      bash <<'EOF'
+      export COMPLETED=false
+      while [ "$COMPLETED" == "false" ]; do
+        (
+          set -e errexit
+          set -o pipefail
+          # workaround https://github.com/ansible/ansible/issues/21562
+          export HOME=/root
+          cd /tmp/cloud
+          rm -rf bin local share roles include lib || true
+          dpkg-query -l libffi-dev || ( apt update -y && apt install libffi-dev -y )
+          dpkg-query -l libssl-dev || ( apt update -y && apt install libssl-dev -y )
+          test -e /usr/bin/python || ( apt update -y && apt install python-minimal -y )
+          test -e /usr/bin/pip || ( apt update -y && apt install python-pip -y )
+          test -e /usr/bin/virtualenv || ( apt update -y && apt install virtualenv -y )
+          virtualenv .
+          source bin/activate
+          pip install -r requirements.txt
+          mkdir roles || true
+          ansible-galaxy install -f -p roles -r requirements.yml
+          ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local playbook.yml
+        ) >> /var/log/cloud-scripts.log 2>&1
+        if [ $? == 0 ]; then
+          COMPLETED=true
+        fi
+        sleep 1
+      done
+      EOF
