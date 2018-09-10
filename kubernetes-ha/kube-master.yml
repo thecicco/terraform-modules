@@ -470,11 +470,11 @@ write_files:
           hostPath: /etc/kubernetes/automium
           mountPath: /etc/kubernetes/automium
         - name: openstack-conf
-          hostpath: /etc/kubernetes/openstack
+          hostPath: /etc/kubernetes/openstack
           mountPath: /etc/kubernetes/openstack
       controllerManagerExtraVolumes:
         - name: openstack-conf
-          hostpath: /etc/kubernetes/openstack
+          hostPath: /etc/kubernetes/openstack
           mountPath: /etc/kubernetes/openstack
       token: ${kube-token}
       tokenTTL: 0s
