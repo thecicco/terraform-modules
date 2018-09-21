@@ -536,6 +536,33 @@ write_files:
                 retry_join:
                   - "${consul}"
 
+      - name: pmm_client
+        hosts: 127.0.0.1
+        roles:
+          - role: entercloudsuite.pmm_client
+            pmm_client_version: 1.14.1
+            pmm_client_server_host: ${pmm_server}
+            pmm_client_server_port: 443
+            pmm_client_server_basic_auth: True
+            pmm_client_server_use_ssl: True
+            pmm_client_server_basic_auth_username: admin
+            pmm_client_server_basic_auth_password: admin
+            pmm_client_add_services:
+              - linux:metrics
+              - mysql:metrics
+              - mysql:queries
+            pmm_client_start_services:
+              - linux:metrics
+              - mysql:metrics
+              - mysql:queries
+            pmm_client_db:
+              mysql:
+                host: localhost
+                port: 3306
+                username: root
+                password: root
+            when: pmm_server != ""
+
     path: /tmp/cloud/playbook.yml
     permissions: '0400'
 
@@ -554,6 +581,8 @@ write_files:
         version: 1.0.1
       - src: entercloudsuite.consul
         version: 1.0.1
+      - src: entercloudsuite.pmm_client
+        version: 1.0.0
     path: /tmp/cloud/requirements.yml
     permissions: '0400'
 

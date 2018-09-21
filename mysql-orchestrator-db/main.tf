@@ -1,5 +1,5 @@
 module "mysql" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7-devel"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7"
   name = "${var.name}"
   quantity = "${var.quantity}"
   external = "${var.external}"
@@ -42,11 +42,12 @@ data "template_file" "cloud-config" {
     orchestrator_cluster_name = "${var.orchestrator_cluster_name}" 
     private_ssh_key = "${indent(16,var.private_ssh_key)}"
     mysql_datadir = "${var.mysql_datadir}"
+    pmm_server = "${var.pmm_server}"
   }
 }
 
 module "volume-mysql" {
-  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.6"
+  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.7"
   name = "${var.name}"
   size = "${var.mysql_volume_size}"
   instance = "${module.mysql.instance}"

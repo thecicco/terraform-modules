@@ -118,3 +118,7 @@ variable "discovery" {
 variable "region" {
   default = "it-mil1"
 }
+
+variable "pmm_server" {
+  default = ""
+}
