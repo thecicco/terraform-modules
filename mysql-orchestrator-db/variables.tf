@@ -34,7 +34,7 @@ variable "orchestrator" {
 }
 
 variable "orchestrator_port" {
-  default = "3000"
+  default = "80"
 }
 
 variable "consul" {
@@ -74,14 +74,10 @@ variable "mysql_replica_user_password" {
 }
 
 variable "orchestrator_user" {
-  default = ""
+  default = "admin"
 }
 
 variable "orchestrator_password" {
-  default = ""
-}
-
-variable "private_ssh_key" {
   default = ""
 }
 
@@ -108,7 +104,7 @@ variable "discovery_port" {
 }
 
 variable "discovery" {
-  default = "false"
+  default = "true"
 }
 
 variable "region" {

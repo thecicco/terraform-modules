@@ -41,7 +41,7 @@ variable "mysql_port" {
 }
 
 variable "orchestrator_user" {
-  default = ""
+  default = "admin"
 }
 
 variable "orchestrator_password" {
@@ -49,11 +49,11 @@ variable "orchestrator_password" {
 }
 
 variable "orchestrator_authentication_method" {
-  default = ""
+  default = "basic"
 }
 
 variable "orchestrator_http_auth_user" {
-  default = ""
+  default = "admin"
 }
 
 variable "orchestrator_http_auth_password" {
@@ -61,11 +61,11 @@ variable "orchestrator_http_auth_password" {
 }
 
 variable "orchestrator_raft_enabled" {
-  default = "false"
+  default = "true"
 }
 
 variable "orchestrator_raft_data_dir" {
-  default = ""
+  default = "/var/lib/orchestrator"
 }
 
 variable "orchestrator_raft_default_port" {
@@ -74,10 +74,6 @@ variable "orchestrator_raft_default_port" {
 
 variable "orchestrator_raft_nodes" {
   default = "[]"
-}
-
-variable "discovery_port" {
-  default = "0"
 }
 
 variable "mysql_datadir" {
@@ -103,7 +99,7 @@ variable "network_name" {
 }
 
 variable "discovery" {
-  default = "false"
+  default = "true"
 }
 
 variable "region" {
