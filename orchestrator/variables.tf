@@ -1,5 +1,5 @@
 variable "quantity" {
-  default = 1
+  default = 3
 }
 
 variable "name" {
