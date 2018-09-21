@@ -29,7 +29,7 @@ write_files:
               bootstrap_session: "{{ bootstrap_session_consul.json | json_query('ID') }}" 
           - name: bootstrap phase - aquire consul lock
             uri:
-              url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_bootstrap?acquire={{ bootstrap_session }}"
+              url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/custom_bootstrap?acquire={{ bootstrap_session }}"
               method: PUT
               status_code: 200
               body: '{ name: ${hostname}.node.${consul_datacenter}.consul }'
@@ -51,7 +51,7 @@ write_files:
 
               - name: put private ssh key
                 uri:
-                  url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key"
+                  url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/custom_ssh_key"
                   method: PUT
                   status_code: 200
                   body: "{{ lookup('file', '/tmp/id_rsa') }}"
@@ -62,7 +62,7 @@ write_files:
 
               - name: put public ssh key
                 uri:
-                  url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key_pub"
+                  url: "http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/custom_ssh_key_pub"
                   method: PUT
                   status_code: 200
                   body: "{{ lookup('file', '/tmp/id_rsa.pub') }}"
@@ -82,7 +82,7 @@ write_files:
 
           - name: get private ssh key
             uri:
-              url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key
+              url: http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/custom_ssh_key
               method: GET
               status_code: 200
               body_format: json
@@ -104,7 +104,7 @@ write_files:
 
           - name: get public ssh key
             uri:
-              url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/custom_ssh_key_pub
+              url: http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/custom_ssh_key_pub
               method: GET
               status_code: 200
               body_format: json
@@ -135,7 +135,7 @@ write_files:
             block:
               - name: get master hostname
                 uri:
-                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/hostname
+                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname
                   method: GET
                   status_code: 200
                   body_format: json
@@ -145,7 +145,7 @@ write_files:
                 retries: 6000
               - name: get master port
                 uri:
-                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/port
+                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/port
                   method: GET
                   status_code: 200
                   body_format: json
@@ -325,14 +325,14 @@ write_files:
                         anchor bool,
                         PRIMARY KEY (id)
                       );
-                      INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${orchestrator_cluster_name}', 1)
-                      ON DUPLICATE KEY UPDATE cluster_name = '${orchestrator_cluster_name}';
+                      INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${name}', 1)
+                      ON DUPLICATE KEY UPDATE cluster_name = '${name}';
                     EOF
 
               - name: update consul with master the new cluster
                 shell: |
                   curl -sS http://${mysql_admin_name}:${mysql_admin_password}@${orchestrator}:${orchestrator_port}/api/submit-masters-to-kv-stores > /dev/null
-                  curl -f -sS http://${consul}:${consul_port}/v1/kv/mysql/master/${orchestrator_cluster_name}/hostname
+                  curl -f -sS http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname
                 register: update_consul
                 until: ( update_consul.rc == 0 ) and
                    ( update_consul.stdout | from_json | json_query('[0].Value') | b64decode == "${hostname}.node.${consul_datacenter}.consul" )
@@ -481,7 +481,7 @@ write_files:
                 listen write-pool
                     bind *:${mysql_master_port}
                     mode tcp
-                    server {{key "mysql/master/${orchestrator_cluster_name}/hostname"}} {{key "mysql/master/${orchestrator_cluster_name}/ipv4"}}:{{key "mysql/master/${orchestrator_cluster_name}/port"}} check port {{key "mysql/master/${orchestrator_cluster_name}/port"}}
+                    server {{key "mysql/master/${name}/hostname"}} {{key "mysql/master/${name}/ipv4"}}:{{key "mysql/master/${name}/port"}} check port {{key "mysql/master/${name}/port"}}
                 {% endraw %}
               dest: /opt/consul-template/templates/master.ctmpl
         roles:

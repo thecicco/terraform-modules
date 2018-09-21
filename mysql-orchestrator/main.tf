@@ -25,7 +25,6 @@ module "mysql" {
   orchestrator_port = "${var.orchestrator_port}"
   orchestrator_user = "${var.orchestrator_user}"
   orchestrator_password = "${var.orchestrator_password}"
-  orchestrator_cluster_name = "${var.name}"
 }
 
 module "orchestrator" {

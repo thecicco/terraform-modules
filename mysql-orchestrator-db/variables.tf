@@ -37,10 +37,6 @@ variable "orchestrator_port" {
   default = "3000"
 }
 
-variable "orchestrator_cluster_name" {
-  default = ""
-}
-
 variable "consul" {
 }
 
