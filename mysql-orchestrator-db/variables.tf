@@ -114,3 +114,11 @@ variable "region" {
 variable "pmm_server" {
   default = ""
 }
+
+variable "pmm_user" {
+  default = "admin"
+}
+
+variable "pmm_password" {
+  default = ""
+}

@@ -41,6 +41,8 @@ data "template_file" "cloud-config" {
     orchestrator_password = "${var.orchestrator_password}" 
     mysql_datadir = "${var.mysql_datadir}"
     pmm_server = "${var.pmm_server}"
+    pmm_user = "${var.pmm_user}"
+    pmm_password = "${var.pmm_password}"
   }
 }
 
