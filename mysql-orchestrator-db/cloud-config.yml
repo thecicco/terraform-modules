@@ -304,8 +304,8 @@ write_files:
               method: GET
               status_code: 200
               body_format: json
-              user: ${mysql_admin_name}
-              password: ${mysql_admin_password}
+              user: ${orchestrator_user}
+              password: ${orchestrator_password}
               force_basic_auth: yes
             register: register_orchestrator
             until: register_orchestrator.failed == false
@@ -331,7 +331,7 @@ write_files:
 
               - name: update consul with master the new cluster
                 shell: |
-                  curl -sS http://${mysql_admin_name}:${mysql_admin_password}@${orchestrator}:${orchestrator_port}/api/submit-masters-to-kv-stores > /dev/null
+                  curl -sS http://${orchestrator_user}:${orchestrator_password}@${orchestrator}:${orchestrator_port}/api/submit-masters-to-kv-stores > /dev/null
                   curl -f -sS http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname
                 register: update_consul
                 until: ( update_consul.rc == 0 ) and
