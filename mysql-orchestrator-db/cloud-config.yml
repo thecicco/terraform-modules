@@ -561,7 +561,7 @@ write_files:
                 port: 3306
                 username: root
                 password: root
-            when: pmm_server != ""
+            when: '"${pmm_server}" != ""'
 
     path: /tmp/cloud/playbook.yml
     permissions: '0400'
