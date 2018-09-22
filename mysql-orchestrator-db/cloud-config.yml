@@ -545,8 +545,8 @@ write_files:
             pmm_client_server_port: 443
             pmm_client_server_basic_auth: True
             pmm_client_server_use_ssl: True
-            pmm_client_server_basic_auth_username: admin
-            pmm_client_server_basic_auth_password: admin
+            pmm_client_server_basic_auth_username: ${pmm_user}
+            pmm_client_server_basic_auth_password: ${pmm_password}
             pmm_client_add_services:
               - linux:metrics
               - mysql:metrics
