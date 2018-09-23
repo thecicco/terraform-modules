@@ -535,7 +535,11 @@ write_files:
                 rejoin_after_leave: true
                 retry_join:
                   - "${consul}"
+    path: /tmp/cloud/playbook.yml
+    permissions: '0400'
 
+write_files:
+  - content: |
       - name: pmm_client
         hosts: 127.0.0.1
         roles:
@@ -563,7 +567,7 @@ write_files:
                 password: root
             when: '"${pmm_server}" != ""'
 
-    path: /tmp/cloud/playbook.yml
+    path: /tmp/cloud/metering.yml
     permissions: '0400'
 
   - content: |
@@ -631,6 +635,16 @@ runcmd:
           mkdir roles || true
           ansible-galaxy install -f -p roles -r requirements.yml
           ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local playbook.yml
+        ) >> /var/log/cloud-scripts.log 2>&1
+        if [ $? == 0 ]; then
+          COMPLETED=true
+        fi
+        sleep 1
+      done
+      export COMPLETED=false
+      while [ "$COMPLETED" == "false" ]; do
+        (
+          ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local metering.yml
         ) >> /var/log/cloud-scripts.log 2>&1
         if [ $? == 0 ]; then
           COMPLETED=true
