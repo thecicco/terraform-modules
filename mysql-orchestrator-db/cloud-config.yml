@@ -245,22 +245,22 @@ write_files:
                   host: '%'
                   password: ${mysql_replica_user_password}
                   priv: '*.*:REPLICATION SLAVE,REPLICATION CLIENT'
-              - name: create mysql user ${orchestrator_user}
+              - name: create mysql user orchestrator_${orchestrator_user}
                 mysql_user:
-                  name: ${orchestrator_user}
+                  name: orchestrator_${orchestrator_user}
                   host: '%'
                   password: ${orchestrator_password}
                   priv: '*.*:RELOAD,PROCESS,SUPER,REPLICATION SLAVE,REPLICATION CLIENT'
-              - name: add permission to read mysql.slave_master_info to mysql user ${orchestrator_user}
+              - name: add permission to read mysql.slave_master_info to mysql user orchestrator_${orchestrator_user}
                 mysql_user:
-                  name: ${orchestrator_user}
+                  name: orchestrator_${orchestrator_user}
                   host: '%'
-                  password: ${orchestrator_password}
+                  password: orchestrator_${orchestrator_password}
                   priv: 'mysql.slave_master_info:SELECT'
                   append_privs: yes
-              - name: add permission to read meta.* to mysql user ${orchestrator_user}
+              - name: add permission to read meta.* to mysql user orchestrator_${orchestrator_user}
                 mysql_user:
-                  name: ${orchestrator_user}
+                  name: orchestrator_${orchestrator_user}
                   host: '%'
                   password: ${orchestrator_password}
                   priv: 'meta.*:SELECT'
