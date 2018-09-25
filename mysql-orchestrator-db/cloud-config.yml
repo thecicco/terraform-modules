@@ -601,7 +601,7 @@ write_files:
             os_password: "${os_password}"
             restic_backup_script: |
               master=$(curl -s ${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname -s | jq '.[].Value' | sed 's/"//g' | base64 -d )
-              if [ "$master" = "${hostname}.node.${consul_datacenter}.consul ]; then
+              if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ]; then
                   echo "lvchange -ay -Ky /dev/mysqlorchestrator/instance1_snapshot" > /usr/share/mylvmbackup/premount
                   chmod +x /usr/share/mylvmbackup/premount
                   mylvmbackup --user=root --password=root --mycnf=/etc/mysql/my.cnf --vgname=mysqlorchestrator --lvname=instance1 --innodb_recover --thin --xfs --backuptype=none --recoveryopts '--skip-networking --bootstrap --skip-grant-tables --skip-syslog --skip-slave-start' --keep_snapshot --keep_mount
