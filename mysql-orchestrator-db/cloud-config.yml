@@ -5,6 +5,8 @@ write_files:
       - name: format volume
         hosts: 127.0.0.1
         pre_tasks:
+          - name: install thin-provisioning-tools
+            package: name=thin-provisioning-tools
           - name: setup partition
             parted:
               device: /dev/vdb
@@ -23,6 +25,8 @@ write_files:
               size: 100%FREE
             when:
               - ansible_lvm['lvs']['thin'] is not defined
+          - name: refresh facts
+            setup:
           - name: setup lv
             lvol:
               vg: mysqlorchestrator
