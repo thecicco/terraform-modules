@@ -47,7 +47,7 @@ data "template_file" "cloud-config" {
     os_region = "${var.os_region}"
     os_project_user = "${var.os_project}"
     os_project_id = "${var.os_project_id}"
-    os_user = "${var.os_user}"
+    os_project_user = "${var.os_project_user}"
     os_password = "${var.os_password}"
     influxdb_url = "${var.influxdb_url}"
     influxdb_port = "${var.influxdb_port}"
