@@ -648,6 +648,7 @@ write_files:
 runcmd:
   - |
       bash <<'EOF'
+      # Install requirements
       export COMPLETED=false
       while [ "$COMPLETED" == "false" ]; do
         (
@@ -667,6 +668,18 @@ runcmd:
           pip install -r requirements.txt
           mkdir roles || true
           ansible-galaxy install -f -p roles -r requirements.yml
+        )
+        if [ $? == 0 ]; then
+          COMPLETED=true
+        fi
+        sleep 1
+      done
+      # Run main playbook
+      export COMPLETED=false
+      while [ "$COMPLETED" == "false" ]; do
+        (
+          cd /tmp/cloud
+          source bin/activate
           ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local playbook.yml
         ) >> /var/log/cloud-scripts.log 2>&1
         if [ $? == 0 ]; then
@@ -675,8 +688,11 @@ runcmd:
         sleep 1
       done
       export COMPLETED=false
+      # Run monitoring playbook
       while [ "$COMPLETED" == "false" ]; do
         (
+          cd /tmp/cloud
+          source bin/activate
           ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local metering.yml
         ) >> /var/log/cloud-scripts.log 2>&1
         if [ $? == 0 ]; then
