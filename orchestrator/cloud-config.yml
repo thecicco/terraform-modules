@@ -32,7 +32,7 @@ write_files:
             orchestrator_mysql_user: orchestrator
             orchestrator_mysql_password: orchestrator
             orchestrator_mysql_topology_user: orchestrator_${orchestrator_user}
-            orchestrator_mysql_topology_password: orchestrator_${orchestrator_password}
+            orchestrator_mysql_topology_password: ${orchestrator_password}
             orchestrator_read_only: false
             orchestrator_super_read_only: true
             orchestrator_mysql_compatible_version:
