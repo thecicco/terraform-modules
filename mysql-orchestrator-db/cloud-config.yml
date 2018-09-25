@@ -597,7 +597,7 @@ write_files:
             os_region: "${os_region}"
             os_project: "${os_project}"
             os_project_id: "${os_project_id}"
-            os_project_user: "${os_project_user}"
+            os_user: "${os_user}"
             os_password: "${os_password}"
             restic_backup_script: |
               master=$(curl -s ${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname -s | jq '.[].Value' | sed 's/"//g' | base64 -d )

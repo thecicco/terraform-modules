@@ -139,7 +139,7 @@ variable "os_project_id" {
   default = ""
 }
 
-variable "os_project_user" {
+variable "os_user" {
   default = ""
 }
 
