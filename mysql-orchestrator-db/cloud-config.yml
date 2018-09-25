@@ -256,6 +256,7 @@ write_files:
           - role: entercloudsuite.mysql
             mysql_root_username: ${mysql_root_name}
             mysql_root_password: ${mysql_root_password}
+            mysql_root_password_update: yes
             mysql_packages:
               - percona-server-server-5.7
               - percona-xtrabackup-24
