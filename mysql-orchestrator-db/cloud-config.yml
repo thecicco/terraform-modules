@@ -568,8 +568,6 @@ write_files:
                   - "${consul}"
     path: /tmp/cloud/playbook.yml
     permissions: '0400'
-
-write_files:
   - content: |
       - name: pmm_client
         hosts: 127.0.0.1
