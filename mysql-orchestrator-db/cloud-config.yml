@@ -570,6 +570,49 @@ write_files:
                 rejoin_after_leave: true
                 retry_join:
                   - "${consul}"
+      - name: backup
+        hosts: 127.0.0.1
+        pre_tasks:
+          - name: install backup requirements
+            package: name="{{ item }}"
+            with_items:
+              - mylvmbackup
+              - jq
+        roles:
+          - role: entercloudsuite.backup
+            customer: "${os_project}"
+            Customer_MaxSize: "524288000"
+            restic_repository: swift:mysql_${name}:/
+            restic_repository_password: ${mysql_admin_password}
+            restic_forget_time:
+              '--keep-daily': '${restic_forget_time_day}'
+            restic_backup_path: /var/cache/mylvmbackup/mnt/backup
+            restic_start_backup_time: "${restic_start_backup_time}"
+            influxDB_url: "${influxdb_url}"
+            influxDB_port: "${influxdb_port}"
+            influxDB_DatabaseName: "${influxdb_databasename}"
+            influxDB_Username: "${influxdb_username}"
+            influxDB_Password: "${influxdb_password}"
+            os_api: "${os_api}"
+            os_region: "${os_region}"
+            os_project: "${os_project}"
+            os_project_id: "${os_project_id}"
+            os_project_user: "${os_project_user}"
+            os_password: "${os_password}"
+            restic_backup_script: |
+              master=$(curl -s ${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname -s | jq '.[].Value' | sed 's/"//g' | base64 -d )
+              if [ "$master" = "${hostname}.node.${consul_datacenter}.consul ]; then
+                  echo "lvchange -ay -Ky /dev/mysqlorchestrator/instance1_snapshot" > /usr/share/mylvmbackup/premount
+                  chmod +x /usr/share/mylvmbackup/premount
+                  mylvmbackup --user=root --password=root --mycnf=/etc/mysql/my.cnf --vgname=mysqlorchestrator --lvname=instance1 --innodb_recover --thin --xfs --backuptype=none --recoveryopts '--skip-networking --bootstrap --skip-grant-tables --skip-syslog --skip-slave-start' --keep_snapshot --keep_mount
+              else
+                  exit 0
+              fi
+            restic_after_prune_script: |
+              umount /var/cache/mylvmbackup/mnt/backup
+              lvremove -y mysqlorchestrator/instance1_snapshot
+
+
     path: /tmp/cloud/playbook.yml
     permissions: '0400'
   - content: |
@@ -619,7 +662,9 @@ write_files:
       - src: entercloudsuite.consul
         version: 1.0.1
       - src: entercloudsuite.pmm_client
-        version: 1.0.0
+        version: 1.0.1
+      - src: entercloudsuite.backup
+        version: 1.0.9
     path: /tmp/cloud/requirements.yml
     permissions: '0400'
 

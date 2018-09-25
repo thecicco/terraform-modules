@@ -122,3 +122,55 @@ variable "pmm_user" {
 variable "pmm_password" {
   default = ""
 }
+
+variable "os_api" {
+  default = ""
+}
+
+variable "os_region" {
+  default = ""
+}
+
+variable "os_project" {
+  default = ""
+}
+
+variable "os_project_id" {
+  default = ""
+}
+
+variable "os_project_user" {
+  default = ""
+}
+
+variable "os_password" {
+  default = ""
+}
+
+variable "influxdb_url" {
+  default = ""
+}
+
+variable "influxdb_port" {
+  default = ""
+}
+
+variable "influxdb_databasename" {
+  default = ""
+}
+
+variable "influxdb_username" {
+  default = ""
+}
+
+variable "influxdb_password" {
+  default = ""
+}
+
+variable "restic_forget_time_day" {
+  default = "7"
+}
+
+variable "restic_start_backup_time" {
+  default = "*-*-* 01:00:00"
+}

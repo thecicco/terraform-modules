@@ -43,6 +43,19 @@ data "template_file" "cloud-config" {
     pmm_server = "${var.pmm_server}"
     pmm_user = "${var.pmm_user}"
     pmm_password = "${var.pmm_password}"
+    os_api = "${var.os_api}"
+    os_region = "${var.os_region}"
+    os_project_user = "${var.os_project}"
+    os_project_id = "${var.os_project_id}"
+    os_user = "${var.os_user}"
+    os_password = "${var.os_password}"
+    influxdb_url = "${var.influxdb_url}"
+    influxdb_port = "${var.influxdb_port}"
+    influxdb_databasename = "${var.influxdb_databasename}"
+    influxdb_username = "${var.influxdb_username}"
+    influxdb_password = "${var.influxdb_password}"
+    restic_forget_time_day = "${var.restic_forget_time_day}"
+    restic_start_backup_time = "${var.restic_start_backup_time}"
   }
 }
 
