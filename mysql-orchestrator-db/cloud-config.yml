@@ -240,6 +240,11 @@ write_files:
                 read_only
                 super_read_only
                 datadir                         = ${mysql_datadir}
+                innodb_buffer_pool_size         = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
+                server-id                       = "{{ 4294967294 | random }}"
+                log_bin                         = mysql-bin
+                log-bin-index                   = mysql-bin.index
+                innodb_log_file_size            = 512M
                 expire_logs_days                = 3
                 max_binlog_size                 = 256M
                 binlog_format                   = ROW
@@ -249,9 +254,6 @@ write_files:
                 log-slave-updates               = 1
                 relay_log_info_repository       = TABLE
                 master_info_repository          = TABLE
-                server-id                       = "{{ 4294967294 | random }}"
-                innodb_buffer_pool_size         = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
-                innodb_log_file_size            = 512M
           - name: startup mysql
             service: name=mysql state=started
         post_tasks:
