@@ -255,13 +255,21 @@ write_files:
           - name: startup mysql
             service: name=mysql state=started
         post_tasks:
-          - name: create mysql admin ${mysql_admin_name}
-            mysql_user:
-              name: ${mysql_admin_name}
-              host: '%'
-              password: ${mysql_admin_password}
-              priv: '*.*:ALL,GRANT'
           - block:
+              - name: set read only off
+                shell:
+                  cmd: |
+                    mysql -uroot -p${mysql_root_password} -e "set global read_only=false"
+              - name: set super read only off
+                shell:
+                  cmd: |
+                    mysql -uroot -p${mysql_root_password} -e "set global super_read_only=false"
+              - name: create mysql admin ${mysql_admin_name}
+                mysql_user:
+                  name: ${mysql_admin_name}
+                  host: '%'
+                  password: ${mysql_admin_password}
+                  priv: '*.*:ALL,GRANT'
               - name: create mysql user ${mysql_replica_user_name}
                 mysql_user:
                   name: ${mysql_replica_user_name}
@@ -288,7 +296,22 @@ write_files:
                   password: ${orchestrator_password}
                   priv: 'meta.*:SELECT'
                   append_privs: yes
-            when: '"${consul}" != ""'
+              - name: setup meta table
+                shell:
+                  cmd: |
+                    mysql -uroot -p${mysql_root_password} << EOF
+                      CREATE DATABASE IF NOT EXISTS meta;
+                      CREATE TABLE IF NOT EXISTS meta.cluster (
+                        id int NOT NULL,
+                        cluster_name varchar(255),
+                        cluster_domain varchar(255),
+                        anchor bool,
+                        PRIMARY KEY (id)
+                      );
+                      INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${name}', 1)
+                      ON DUPLICATE KEY UPDATE cluster_name = '${name}';
+                    EOF
+            when: bootstrap == true
           - name: check that the slave coordination file exist
             stat:
               path: ${mysql_datadir}/xtrabackup_binlog_info
@@ -336,30 +359,6 @@ write_files:
             retries: 6000
 
           - block:
-              - name: set read only off
-                shell:
-                  cmd: |
-                    mysql -uroot -p${mysql_root_password} -e "set global read_only=false"
-              - name: set super read only off
-                shell:
-                  cmd: |
-                    mysql -uroot -p${mysql_root_password} -e "set global super_read_only=false"
-              - name: setup meta table
-                shell:
-                  cmd: |
-                    mysql -uroot -p${mysql_root_password} << EOF
-                      CREATE DATABASE IF NOT EXISTS meta;
-                      CREATE TABLE IF NOT EXISTS meta.cluster (
-                        id int NOT NULL,
-                        cluster_name varchar(255),
-                        cluster_domain varchar(255),
-                        anchor bool,
-                        PRIMARY KEY (id)
-                      );
-                      INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${name}', 1)
-                      ON DUPLICATE KEY UPDATE cluster_name = '${name}';
-                    EOF
-
               - name: update consul with master the new cluster
                 shell: |
                   curl -sS http://${orchestrator_user}:${orchestrator_password}@${orchestrator}:${orchestrator_port}/api/submit-masters-to-kv-stores > /dev/null
@@ -709,7 +708,7 @@ runcmd:
           pip install -r requirements.txt
           mkdir roles || true
           ansible-galaxy install -f -p roles -r requirements.yml
-        )
+        ) >> /var/log/cloud-scripts.log 2>&1
         if [ $? == 0 ]; then
           COMPLETED=true
         fi
