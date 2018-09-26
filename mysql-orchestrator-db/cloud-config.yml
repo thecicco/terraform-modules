@@ -228,15 +228,21 @@ write_files:
       - name: install mysql
         hosts: 127.0.0.1
         pre_tasks:
+          - name: stop mysql
+            service: name=mysql state=stopped
+          - name: clean up old installation
+            file: name=/var/lib/mysql state=absent
           - name: add custom mysql config file
             copy:
               dest: /etc/mysql/conf.d/custom.cnf
               content: |
                 [mysqld]
+                read_only
+                super_read_only
                 datadir                         = ${mysql_datadir}
-                expire_logs_days                = 2
+                expire_logs_days                = 3
                 max_binlog_size                 = 256M
-                mysql_binlog_format             = ROW
+                binlog_format                   = ROW
                 enforce_gtid_consistency        = ON
                 gtid_mode                       = ON
                 report-host                     = ${hostname}.node.${consul_datacenter}.consul
@@ -246,6 +252,8 @@ write_files:
                 server-id                       = "{{ 4294967294 | random }}"
                 innodb_buffer_pool_size         = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
                 innodb_log_file_size            = 512M
+          - name: startup mysql
+            service: name=mysql state=stated
         post_tasks:
           - name: create mysql admin ${mysql_admin_name}
             mysql_user:
@@ -328,6 +336,14 @@ write_files:
             retries: 6000
 
           - block:
+              - name: set read only off
+                shell:
+                  cmd: |
+                    mysql -uroot -p${mysql_root_password} -e "set global read_only=false"
+              - name: set super read only off
+                shell:
+                  cmd: |
+                    mysql -uroot -p${mysql_root_password} -e "set global super_read_only=false"
               - name: setup meta table
                 shell:
                   cmd: |
