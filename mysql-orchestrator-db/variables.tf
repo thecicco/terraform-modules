@@ -88,6 +88,10 @@ variable "sec_group" {
 variable "keypair" {
 }
 
+variable "image" {
+  default = ""
+}
+
 variable "flavor" {
   default = "e3standard.x3"
 }

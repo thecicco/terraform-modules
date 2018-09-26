@@ -1,6 +1,7 @@
 module "mysql" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7"
   name = "${var.name}"
+  image = "${var.image}"
   quantity = "${var.quantity}"
   external = "${var.external}"
   region = "${var.region}"

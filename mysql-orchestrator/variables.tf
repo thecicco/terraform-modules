@@ -8,6 +8,10 @@ variable "orchestrator_quantity" {
 variable "name" {
 }
 
+variable "mysql_image" {
+  default = ""
+}
+
 variable "mysql_flavor" {
   default = "e3standard.x3"
 }
