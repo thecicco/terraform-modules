@@ -253,7 +253,7 @@ write_files:
                 innodb_buffer_pool_size         = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
                 innodb_log_file_size            = 512M
           - name: startup mysql
-            service: name=mysql state=stated
+            service: name=mysql state=started
         post_tasks:
           - name: create mysql admin ${mysql_admin_name}
             mysql_user:
