@@ -228,45 +228,24 @@ write_files:
       - name: install mysql
         hosts: 127.0.0.1
         pre_tasks:
-          - name: install curl
-            package: name=curl
-          - name: install percona mysql repo
-            shell: curl -O https://repo.percona.com/apt/percona-release_0.1-4.$(lsb_release -sc)_all.deb && dpkg -i percona-release_0.1-4.$(lsb_release -sc)_all.deb
-            args:
-              creates: /etc/apt/sources.list.d/percona-release.list
-              executable: /bin/bash
-              chdir: /tmp
-          - name: refresh apt cache
-            apt:
-              update_cache: yes
-          - name: create /etc/mysql
-            file: path=/etc/mysql state=directory
           - name: add custom mysql config file
             copy:
-              dest: custom.cnf
+              dest: /etc/mysql/conf.d/custom.cnf
               content: |
                 [mysqld]
+                datadir                         = ${mysql_datadir}
+                expire_logs_days                = 2
+                max_binlog_size                 = 256M
+                mysql_binlog_format             = ROW
                 enforce_gtid_consistency        = ON
                 gtid_mode                       = ON
                 report-host                     = ${hostname}.node.${consul_datacenter}.consul
                 log-slave-updates               = 1
                 relay_log_info_repository       = TABLE
                 master_info_repository          = TABLE
-        roles:
-          - role: entercloudsuite.mysql
-            mysql_root_username: ${mysql_root_name}
-            mysql_root_password: ${mysql_root_password}
-            mysql_root_password_update: yes
-            mysql_packages:
-              - percona-server-server-5.7
-              - percona-xtrabackup-24
-            mysql_datadir: ${mysql_datadir}
-            mysql_replication_master: 127.0.0.1
-            mysql_replication_role: master
-            mysql_server_id: "{{ 4294967294 | random }}"
-            mysql_max_binlog_size: 500M
-            mysql_config_include_files:
-              - src: custom.cnf
+                server-id                       = "{{ 4294967294 | random }}"
+                innodb_buffer_pool_size         = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
+                innodb_log_file_size            = 512M
         post_tasks:
           - name: create mysql admin ${mysql_admin_name}
             mysql_user:
