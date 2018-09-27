@@ -601,6 +601,31 @@ write_files:
               if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ]; then
                   echo "lvchange -ay -Ky /dev/mysqlorchestrator/instance1_snapshot" > /usr/share/mylvmbackup/premount
                   chmod +x /usr/share/mylvmbackup/premount
+
+                  cat <<EOF > /usr/share/mylvmbackup/prebackup
+              #!/bin/bash
+              function get_gtid_executed()
+              {
+                  local count
+                  local res
+
+                  count=0
+                  while read line; do
+                      if [ $count -eq 5 ] # File:
+                      then
+                          res=`echo "$line" | sed s/Executed_Gtid_Set://`
+                          break;
+                      fi
+                      count=$((count+1))
+                  done <<< "`mysql -Nse 'SHOW MASTER STATUS\G' mysql`"
+
+                  echo $res
+              }
+
+              get_gtid_executed > /var/cache/mylvmbackup/mnt/backup/mastergtid
+              EOF
+                  chmod +x /usr/share/mylvmbackup/prebackup
+
                   mylvmbackup --user=root --password=root --mycnf=/etc/mysql/my.cnf --vgname=mysqlorchestrator --lvname=instance1 --innodb_recover --thin --xfs --backuptype=none --recoveryopts '--skip-networking --bootstrap --skip-grant-tables --skip-syslog --skip-slave-start' --keep_snapshot --keep_mount
               else
                   exit 0
