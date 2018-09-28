@@ -29,6 +29,9 @@ variable "mysql_volume_type" {
   default = "Top"
 }
 
+variable "mysql_custom_options" {
+}
+
 variable "orchestrator" {
   default = ""
 }

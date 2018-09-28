@@ -237,23 +237,39 @@ write_files:
               dest: /etc/mysql/conf.d/custom.cnf
               content: |
                 [mysqld]
+                # user options
+                ${indent(16,mysql_user_options)}
+                # optimizations
                 read_only
                 super_read_only
-                datadir                         = ${mysql_datadir}
-                innodb_buffer_pool_size         = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
-                server-id                       = "{{ 4294967294 | random }}"
-                log_bin                         = mysql-bin
-                log-bin-index                   = mysql-bin.index
-                innodb_log_file_size            = 512M
-                expire_logs_days                = 3
-                max_binlog_size                 = 256M
-                binlog_format                   = ROW
-                enforce_gtid_consistency        = ON
-                gtid_mode                       = ON
-                report-host                     = ${hostname}.node.${consul_datacenter}.consul
-                log-slave-updates               = 1
-                relay_log_info_repository       = TABLE
-                master_info_repository          = TABLE
+                datadir                           = ${mysql_datadir}
+                innodb_buffer_pool_size           = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
+                server-id                         = "{{ 4294967294 | random }}"
+                log_bin                           = mysql-bin
+                log-bin-index                     = mysql-bin.index
+                innodb_log_file_size              = 512M
+                expire_logs_days                  = 3
+                max_binlog_size                   = 256M
+                binlog_format                     = ROW
+                enforce_gtid_consistency          = ON
+                gtid_mode                         = ON
+                report-host                       = ${hostname}.node.${consul_datacenter}.consul
+                log-slave-updates                 = 1
+                relay_log_info_repository         = TABLE
+                master_info_repository            = TABLE
+                # pmm options
+                log_output                        = file
+                slow_query_log                    = ON
+                long_query_time                   = 0
+                log_slow_rate_limit               = 100
+                log_slow_rate_type                = query
+                log_slow_verbosity                = full
+                log_slow_admin_statements         = ON
+                log_slow_slave_statements         = ON
+                slow_query_log_always_write_time  = 1
+                slow_query_log_use_global_control = all
+                innodb_monitor_enable             = all
+                userstat                          = 1
           - name: startup mysql
             service: name=mysql state=started
         post_tasks:
