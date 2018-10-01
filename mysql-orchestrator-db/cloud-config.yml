@@ -238,7 +238,7 @@ write_files:
               content: |
                 [mysqld]
                 # user options
-                ${indent(16,mysql_user_options)}
+                ${mysql_user_options}
                 # optimizations
                 read_only
                 super_read_only

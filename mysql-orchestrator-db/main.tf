@@ -32,7 +32,7 @@ data "template_file" "cloud-config" {
     mysql_admin_password = "${var.mysql_admin_password}"
     mysql_replica_user_name = "${var.mysql_replica_user_name}"
     mysql_replica_user_password = "${var.mysql_replica_user_password}"
-    mysql_user_options = "${var.mysql_user_options}"
+    mysql_user_options = "${indent(20,var.mysql_user_options)}"
     consul = "${var.consul}" 
     consul_port = "${var.consul_port}" 
     consul_datacenter = "${var.consul_datacenter}" 
