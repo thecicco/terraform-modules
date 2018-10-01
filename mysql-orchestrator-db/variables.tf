@@ -29,7 +29,8 @@ variable "mysql_volume_type" {
   default = "Top"
 }
 
-variable "mysql_custom_options" {
+variable "mysql_user_options" {
+  default = ""
 }
 
 variable "orchestrator" {
