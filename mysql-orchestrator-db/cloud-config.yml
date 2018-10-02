@@ -201,7 +201,76 @@ write_files:
                   - 22
                   - "{{ mysql_master_port }}"
 
+      - name: backup
+        hosts: 127.0.0.1
+        pre_tasks:
+          - name: install backup requirements
+            package: name="{{ item }}"
+            with_items:
+              - mylvmbackup
+              - jq
+        roles:
+          - role: entercloudsuite.backup
+            customer: "${os_project}"
+            Customer_MaxSize: "524288000"
+            restic_repository: swift:mysql_${name}:/
+            restic_repository_password: ${mysql_admin_password}
+            restic_forget_time:
+              '--keep-daily': '${restic_forget_time_day}'
+            restic_backup_path: /var/cache/mylvmbackup/mnt/backup
+            restic_start_backup_time: "${restic_start_backup_time}"
+            influxDB_url: "${influxdb_url}"
+            influxDB_port: "${influxdb_port}"
+            influxDB_DatabaseName: "${influxdb_databasename}"
+            influxDB_Username: "${influxdb_username}"
+            influxDB_Password: "${influxdb_password}"
+            os_api: "${os_api}"
+            os_region: "${os_region}"
+            os_project: "${os_project}"
+            os_project_id: "${os_project_id}"
+            os_user: "${os_user}"
+            os_password: "${os_password}"
+            restic_backup_script: |
+              master=$(curl -s ${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname -s | jq '.[].Value' | sed 's/"//g' | base64 -d )
+              if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ]; then
+                  echo "lvchange -ay -Ky /dev/mysqlorchestrator/instance1_snapshot" > /usr/share/mylvmbackup/premount
+                  chmod +x /usr/share/mylvmbackup/premount
+                  echo "cp /tmp/mastergtid /var/cache/mylvmbackup/mnt/backup/mastergtid" > /usr/share/mylvmbackup/prebackup
+                  chmod +x /usr/share/mylvmbackup/prebackup
+
+                  cat <<'EOF' > /usr/share/mylvmbackup/preunlock
+              #!/bin/bash
+              function get_gtid_executed()
+              {
+                  local count
+                  local res
+
+                  count=0
+                  while read line; do
+                      if [ $count -eq 5 ] # File:
+                      then
+                          res=`echo "$line" | sed s/Executed_Gtid_Set://`
+                          break;
+                      fi
+                      count=$((count+1))
+                  done <<< "`mysql -Nse 'SHOW MASTER STATUS\G' mysql`"
+
+                  echo $res
+              }
+
+              get_gtid_executed > /tmp/mastergtid
+              EOF
+                  chmod +x /usr/share/mylvmbackup/preunlock
+
+                  mylvmbackup --user=root --password=root --mycnf=/etc/mysql/my.cnf --vgname=mysqlorchestrator --lvname=instance1 --innodb_recover --thin --xfs --backuptype=none --recoveryopts '--skip-networking --bootstrap --skip-grant-tables --skip-syslog --skip-slave-start' --keep_snapshot --keep_mount
+              else
+                  exit 0
+              fi
+            restic_after_prune_script: |
+              umount /var/cache/mylvmbackup/mnt/backup
+              lvremove -y mysqlorchestrator/instance1_snapshot
             when: ( bootstrap == false)
+
           - name: restore latest mysql data release
             block:
               - name: download restic https://github.com/restic/restic/pull/1719#pullrequestreview-119247068
@@ -212,8 +281,8 @@ write_files:
               - name: restore data
                 shell: |
                   source /usr/local/restic/customer-data.sh
-                  export RESTIC_REPOSITORY="swift:mysql_pippozo:/"
-                  export RESTIC_PASSWORD="aengah4oW9EeN9aipaeshaed"
+                  export RESTIC_REPOSITORY="swift:mysql_${name}:/"
+                  export RESTIC_PASSWORD="${mysql_admin_password}"
                   export XDG_CACHE_HOME="/var/backups/restic_cache"
                   restic restore latest --target ${mysql_datadir}/.restore
                   mv ${mysql_datadir}/.restore/var/cache/mylvmbackup/mnt/backup/*  ${mysql_datadir}/
@@ -335,6 +404,10 @@ write_files:
                       INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${name}', 1)
                       ON DUPLICATE KEY UPDATE cluster_name = '${name}';
                     EOF
+              - name: create first backup
+                shell:
+                  cmd: |
+                    bash /usr/local/restic/files_backup.sh
             when: bootstrap == true
           - name: check that the slave coordination file exist
             stat:
@@ -589,74 +662,6 @@ write_files:
                 rejoin_after_leave: true
                 retry_join:
                   - "${consul}"
-      - name: backup
-        hosts: 127.0.0.1
-        pre_tasks:
-          - name: install backup requirements
-            package: name="{{ item }}"
-            with_items:
-              - mylvmbackup
-              - jq
-        roles:
-          - role: entercloudsuite.backup
-            customer: "${os_project}"
-            Customer_MaxSize: "524288000"
-            restic_repository: swift:mysql_${name}:/
-            restic_repository_password: ${mysql_admin_password}
-            restic_forget_time:
-              '--keep-daily': '${restic_forget_time_day}'
-            restic_backup_path: /var/cache/mylvmbackup/mnt/backup
-            restic_start_backup_time: "${restic_start_backup_time}"
-            influxDB_url: "${influxdb_url}"
-            influxDB_port: "${influxdb_port}"
-            influxDB_DatabaseName: "${influxdb_databasename}"
-            influxDB_Username: "${influxdb_username}"
-            influxDB_Password: "${influxdb_password}"
-            os_api: "${os_api}"
-            os_region: "${os_region}"
-            os_project: "${os_project}"
-            os_project_id: "${os_project_id}"
-            os_user: "${os_user}"
-            os_password: "${os_password}"
-            restic_backup_script: |
-              master=$(curl -s ${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname -s | jq '.[].Value' | sed 's/"//g' | base64 -d )
-              if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ]; then
-                  echo "lvchange -ay -Ky /dev/mysqlorchestrator/instance1_snapshot" > /usr/share/mylvmbackup/premount
-                  chmod +x /usr/share/mylvmbackup/premount
-                  echo "cp /tmp/mastergtid /var/cache/mylvmbackup/mnt/backup/mastergtid" > /usr/share/mylvmbackup/prebackup
-                  chmod +x /usr/share/mylvmbackup/prebackup
-
-                  cat <<'EOF' > /usr/share/mylvmbackup/preunlock
-              #!/bin/bash
-              function get_gtid_executed()
-              {
-                  local count
-                  local res
-
-                  count=0
-                  while read line; do
-                      if [ $count -eq 5 ] # File:
-                      then
-                          res=`echo "$line" | sed s/Executed_Gtid_Set://`
-                          break;
-                      fi
-                      count=$((count+1))
-                  done <<< "`mysql -Nse 'SHOW MASTER STATUS\G' mysql`"
-
-                  echo $res
-              }
-
-              get_gtid_executed > /tmp/mastergtid
-              EOF
-                  chmod +x /usr/share/mylvmbackup/preunlock
-
-                  mylvmbackup --user=root --password=root --mycnf=/etc/mysql/my.cnf --vgname=mysqlorchestrator --lvname=instance1 --innodb_recover --thin --xfs --backuptype=none --recoveryopts '--skip-networking --bootstrap --skip-grant-tables --skip-syslog --skip-slave-start' --keep_snapshot --keep_mount
-              else
-                  exit 0
-              fi
-            restic_after_prune_script: |
-              umount /var/cache/mylvmbackup/mnt/backup
-              lvremove -y mysqlorchestrator/instance1_snapshot
 
 
     path: /tmp/cloud/playbook.yml
