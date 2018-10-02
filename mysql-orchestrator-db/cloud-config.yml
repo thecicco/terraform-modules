@@ -227,7 +227,6 @@ write_files:
             restic_after_prune_script: |
               umount /var/cache/mylvmbackup/mnt/backup
               lvremove -y mysqlorchestrator/instance1_snapshot
-            when: ( bootstrap == false)
 
       - name: copy master mysql data
         hosts: 127.0.0.1
