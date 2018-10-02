@@ -406,9 +406,7 @@ write_files:
                       ON DUPLICATE KEY UPDATE cluster_name = '${name}';
                     EOF
               - name: create first backup
-                shell:
-                  cmd: |
-                    bash /usr/local/restic/files_backup.sh
+                shell: bash /usr/local/restic/files_backup.sh
             when: bootstrap == true
           - name: check that the slave coordination file exist
             stat:
