@@ -202,20 +202,26 @@ write_files:
                   - "{{ mysql_master_port }}"
 
             when: ( bootstrap == false)
-        roles:
-          - role: entercloudsuite.mysql-innobackupex
-            innobackupex_source_server: "{{ mysql_master }}"
-            innobackupex_destination: ${mysql_datadir}
+          - name: restore latest mysql data release
+            block:
+              - name: download restic https://github.com/restic/restic/pull/1719#pullrequestreview-119247068
+                get_url:
+                  url: https://swift.it-mil1.entercloudsuite.com/v1/KEY_d51f5387474f40c6bd2975ccf34c7ea0/resticbin/restic
+                  dest: /usr/local/bin/restic
+                  mode: 0540
+              - name: restore data
+                shell: |
+                  source /usr/local/restic/customer-data.sh
+                  export RESTIC_REPOSITORY="swift:mysql_pippozo:/"
+                  export RESTIC_PASSWORD="aengah4oW9EeN9aipaeshaed"
+                  export XDG_CACHE_HOME="/var/backups/restic_cache"
+                  restic restore latest --target ${mysql_datadir}/.restore
+                  mv ${mysql_datadir}/.restore/var/cache/mylvmbackup/mnt/backup/*  ${mysql_datadir}/
+                  rm -rf ${mysql_datadir}/.restore
+                  rm ${mysql_datadir}/auto.cnf
             when: ( bootstrap == false ) and
                   ( _mysql_datadir.stat.exists == false )
-        post_tasks:
-          - name: create mysql user
-            user:
-              name: mysql
-              comment: "MySQL Server"
-              shell: /bin/false
-              home: /var/lib/mysql
-          - name: fix permission
+          - name: set mysql owner to ${mysql_datadir}
             file: path=${mysql_datadir} recurse=yes owner=mysql group=mysql
           - name: setup client password
             copy:
@@ -332,15 +338,15 @@ write_files:
             when: bootstrap == true
           - name: check that the slave coordination file exist
             stat:
-              path: ${mysql_datadir}/xtrabackup_binlog_info
-            register: _xtrabackup_binlog_info
+              path: ${mysql_datadir}/mastergtid
+            register: _mastergtid
           - name: set up replica
             block:
               - name: set read only at runtime
                 shell: >
                   mysql -uroot -p${mysql_root_password} -e "set global read_only=true"
               - name: get gtid position
-                shell: cat ${mysql_datadir}/xtrabackup_binlog_info | cut -f3
+                shell: cat ${mysql_datadir}/mastergtid
                 register: _gtid_position
               - name: reset master status on slave node
                 shell: >
@@ -354,10 +360,10 @@ write_files:
               - name: start slave
                 shell: >
                   mysql -uroot -p${mysql_root_password} -e "START SLAVE\G;"
-              - name: delete ${mysql_datadir}/xtrabackup_binlog_info file
-                file: path=${mysql_datadir}/xtrabackup_binlog_info state=absent
+              - name: delete ${mysql_datadir}/mastergtid file
+                file: path=${mysql_datadir}/mastergtid state=absent
             when: ( bootstrap == false ) and
-                  ( _xtrabackup_binlog_info.stat.exists == True )
+                  ( _mastergtid.stat.exists == True )
 
       - name: register node
         hosts: 127.0.0.1
@@ -617,8 +623,10 @@ write_files:
               if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ]; then
                   echo "lvchange -ay -Ky /dev/mysqlorchestrator/instance1_snapshot" > /usr/share/mylvmbackup/premount
                   chmod +x /usr/share/mylvmbackup/premount
+                  echo "cp /tmp/mastergtid /var/cache/mylvmbackup/mnt/backup/mastergtid" > /usr/share/mylvmbackup/prebackup
+                  chmod +x /usr/share/mylvmbackup/prebackup
 
-                  cat <<EOF > /usr/share/mylvmbackup/prebackup
+                  cat <<'EOF' > /usr/share/mylvmbackup/preunlock
               #!/bin/bash
               function get_gtid_executed()
               {
@@ -638,9 +646,9 @@ write_files:
                   echo $res
               }
 
-              get_gtid_executed > /var/cache/mylvmbackup/mnt/backup/mastergtid
+              get_gtid_executed > /tmp/mastergtid
               EOF
-                  chmod +x /usr/share/mylvmbackup/prebackup
+                  chmod +x /usr/share/mylvmbackup/preunlock
 
                   mylvmbackup --user=root --password=root --mycnf=/etc/mysql/my.cnf --vgname=mysqlorchestrator --lvname=instance1 --innodb_recover --thin --xfs --backuptype=none --recoveryopts '--skip-networking --bootstrap --skip-grant-tables --skip-syslog --skip-slave-start' --keep_snapshot --keep_mount
               else
