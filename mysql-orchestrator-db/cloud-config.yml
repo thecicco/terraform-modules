@@ -159,48 +159,6 @@ write_files:
               user: root
               key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
 
-      - name: copy master mysql data
-        hosts: 127.0.0.1
-        pre_tasks:
-          - name: check that the dir ${mysql_datadir}/mysql exist
-            stat:
-              path: ${mysql_datadir}/mysql
-            register: _mysql_datadir
-          - name: get mysql master from consul
-            block:
-              - name: get master hostname
-                uri:
-                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname
-                  method: GET
-                  status_code: 200
-                  body_format: json
-                register: mysql_master_consul
-                until: mysql_master_consul.failed == false
-                delay: 1
-                retries: 6000
-              - name: get master port
-                uri:
-                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/port
-                  method: GET
-                  status_code: 200
-                  body_format: json
-                register: mysql_master_port_consul
-                until: mysql_master_port_consul.failed == false
-                delay: 1
-                retries: 6000
-              - set_fact:
-                  mysql_master: "{{ mysql_master_consul.json | json_query('[0].Value') | b64decode }}" 
-              - set_fact:
-                  mysql_master_port: "{{ mysql_master_port_consul.json | json_query('[0].Value') | b64decode }}" 
-              - name: wait until ssh and mysql is available on "{{ mysql_master }}:{{ mysql_master_port }}"
-                wait_for:
-                  host: "{{ mysql_master }}"
-                  port: "{{ item }}"
-                  timeout: 6000
-                with_items:
-                  - 22
-                  - "{{ mysql_master_port }}"
-
       - name: backup
         hosts: 127.0.0.1
         pre_tasks:
@@ -271,10 +229,50 @@ write_files:
               lvremove -y mysqlorchestrator/instance1_snapshot
             when: ( bootstrap == false)
 
-      - name: restore latest mysql data release
+      - name: copy master mysql data
         hosts: 127.0.0.1
-        tasks:
-          - block:
+        pre_tasks:
+          - name: check that the dir ${mysql_datadir}/mysql exist
+            stat:
+              path: ${mysql_datadir}/mysql
+            register: _mysql_datadir
+          - name: get mysql master from consul
+            block:
+              - name: get master hostname
+                uri:
+                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname
+                  method: GET
+                  status_code: 200
+                  body_format: json
+                register: mysql_master_consul
+                until: mysql_master_consul.failed == false
+                delay: 1
+                retries: 6000
+              - name: get master port
+                uri:
+                  url: http://${consul}:${consul_port}/v1/kv/mysql/master/${name}/port
+                  method: GET
+                  status_code: 200
+                  body_format: json
+                register: mysql_master_port_consul
+                until: mysql_master_port_consul.failed == false
+                delay: 1
+                retries: 6000
+              - set_fact:
+                  mysql_master: "{{ mysql_master_consul.json | json_query('[0].Value') | b64decode }}" 
+              - set_fact:
+                  mysql_master_port: "{{ mysql_master_port_consul.json | json_query('[0].Value') | b64decode }}" 
+              - name: wait until ssh and mysql is available on "{{ mysql_master }}:{{ mysql_master_port }}"
+                wait_for:
+                  host: "{{ mysql_master }}"
+                  port: "{{ item }}"
+                  timeout: 6000
+                with_items:
+                  - 22
+                  - "{{ mysql_master_port }}"
+            when: ( bootstrap == false)
+          - name: restore latest mysql data release
+            block:
               - name: download restic https://github.com/restic/restic/pull/1719#pullrequestreview-119247068
                 get_url:
                   url: https://swift.it-mil1.entercloudsuite.com/v1/KEY_d51f5387474f40c6bd2975ccf34c7ea0/resticbin/restic
