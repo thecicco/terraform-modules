@@ -406,7 +406,9 @@ write_files:
                       ON DUPLICATE KEY UPDATE cluster_name = '${name}';
                     EOF
               - name: create first backup
-                shell: bash /usr/local/restic/files_backup.sh
+                shell: systemctl start backup-files.service
+              - name: wait the end of the backup
+                shell: while [ "$(systemctl is-active backup-files.service)" = "active" ]; do sleep 1; done
             when: bootstrap == true
           - name: check that the slave coordination file exist
             stat:
