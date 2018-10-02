@@ -288,6 +288,8 @@ write_files:
                   mv ${mysql_datadir}/.restore/var/cache/mylvmbackup/mnt/backup/*  ${mysql_datadir}/
                   rm -rf ${mysql_datadir}/.restore
                   rm ${mysql_datadir}/auto.cnf
+                args:
+                  executable: /bin/bash
             when: ( bootstrap == false ) and
                   ( _mysql_datadir.stat.exists == false )
           - name: set mysql owner to ${mysql_datadir}
