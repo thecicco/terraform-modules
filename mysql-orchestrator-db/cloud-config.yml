@@ -169,6 +169,7 @@ write_files:
             with_items:
               - mylvmbackup
               - jq
+              - libfile-copy-recursive-perl
         roles:
           - role: entercloudsuite.backup
             customer: "${os_project}"
@@ -733,7 +734,7 @@ write_files:
       - src: entercloudsuite.pmm_client
         version: 1.0.1
       - src: entercloudsuite.backup
-        version: 1.1.1
+        version: 1.1.2
     path: /tmp/cloud/requirements.yml
     permissions: '0400'
 
