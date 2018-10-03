@@ -409,6 +409,8 @@ write_files:
                 shell: systemctl start backup-files.service
               - name: wait the end of the backup
                 shell: while [ "$(systemctl is-active backup-files.service)" = "active" ]; do sleep 1; done
+                args:
+                  executable: /bin/bash
             when: bootstrap == true
           - name: check that the slave coordination file exist
             stat:
