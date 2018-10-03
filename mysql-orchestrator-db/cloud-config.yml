@@ -449,7 +449,7 @@ write_files:
                   source /usr/local/restic/customer-data.sh
                   export RESTIC_REPOSITORY="swift:mysql_${name}:/"
                   export RESTIC_PASSWORD="${mysql_admin_password}"
-                  "{{ restic_binary_path }}/restic init"
+                  {{ restic_binary_path }}/restic init
                 args:
                   executable: /bin/bash
               - name: create first backup
