@@ -405,12 +405,17 @@ write_files:
                       INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${name}', 1)
                       ON DUPLICATE KEY UPDATE cluster_name = '${name}';
                     EOF
+              #- name: create first backup
+              #  shell: systemctl start backup-files.service
               - name: create first backup
-                shell: systemctl start backup-files.service
-              - name: wait the end of the backup
-                shell: while [ "$(systemctl is-active backup-files.service)" = "active" ]; do sleep 1; done
+                shell: /bin/bash -x /usr/local/restic/files_backup.sh &> /var/log/firstbackup
                 args:
                   executable: /bin/bash
+
+              #- name: wait the end of the backup
+              #  shell: while [ "$(systemctl is-active backup-files.service)" = "active" ]; do sleep 1; done
+              #  args:
+              #    executable: /bin/bash
             when: bootstrap == true
           - name: check that the slave coordination file exist
             stat:
