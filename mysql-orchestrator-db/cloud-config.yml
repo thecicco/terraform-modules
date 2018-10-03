@@ -193,7 +193,7 @@ write_files:
             restic_setup_repository: false
             restic_backup_script: |
               master=$(curl -s ${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname -s | jq '.[].Value' | sed 's/"//g' | base64 -d )
-              if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ]; then
+              if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ] || [ "$1" = "force" ]; then
                   echo "lvchange -ay -Ky /dev/mysqlorchestrator/instance1_snapshot" > /usr/share/mylvmbackup/premount
                   chmod +x /usr/share/mylvmbackup/premount
                   echo "cp /tmp/mastergtid /var/cache/mylvmbackup/mnt/backup/mastergtid" > /usr/share/mylvmbackup/prebackup
@@ -453,15 +453,9 @@ write_files:
                 args:
                   executable: /bin/bash
               - name: create first backup
-                shell: /bin/bash -x /usr/local/restic/files_backup.sh &> /var/log/firstbackup
+                shell: /bin/bash -x /usr/local/restic/files_backup.sh force &> /var/log/cloud-firstbackup.log
                 args:
                   executable: /bin/bash
-              #- name: create first backup
-              #  shell: systemctl start backup-files.service
-              #- name: wait the end of the backup
-              #  shell: while [ "$(systemctl is-active backup-files.service)" = "active" ]; do sleep 1; done
-              #  args:
-              #    executable: /bin/bash
             when: bootstrap == true
 
       - name: register node
@@ -739,7 +733,7 @@ write_files:
       - src: entercloudsuite.pmm_client
         version: 1.0.1
       - src: entercloudsuite.backup
-        version: 1.1.0
+        version: 1.1.1
     path: /tmp/cloud/requirements.yml
     permissions: '0400'
 
