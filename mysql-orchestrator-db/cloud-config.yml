@@ -188,6 +188,7 @@ write_files:
             os_project_id: "${os_project_id}"
             os_user: "${os_user}"
             os_password: "${os_password}"
+            restic_setup_repository: false
             restic_backup_script: |
               master=$(curl -s ${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname -s | jq '.[].Value' | sed 's/"//g' | base64 -d )
               if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ]; then
@@ -405,18 +406,9 @@ write_files:
                       INSERT INTO meta.cluster(id, cluster_name, anchor) VALUES (1, '${name}', 1)
                       ON DUPLICATE KEY UPDATE cluster_name = '${name}';
                     EOF
-              #- name: create first backup
-              #  shell: systemctl start backup-files.service
-              - name: create first backup
-                shell: /bin/bash -x /usr/local/restic/files_backup.sh &> /var/log/firstbackup
-                args:
-                  executable: /bin/bash
-
-              #- name: wait the end of the backup
-              #  shell: while [ "$(systemctl is-active backup-files.service)" = "active" ]; do sleep 1; done
-              #  args:
-              #    executable: /bin/bash
             when: bootstrap == true
+
+
           - name: check that the slave coordination file exist
             stat:
               path: ${mysql_datadir}/mastergtid
@@ -445,6 +437,30 @@ write_files:
                 file: path=${mysql_datadir}/mastergtid state=absent
             when: ( bootstrap == false ) and
                   ( _mastergtid.stat.exists == True )
+
+      - name: init backup
+        hosts: 127.0.0.1
+        tasks:
+          - block:
+              - name: create restic repository
+                shell: |
+                  source /usr/local/restic/customer-data.sh
+                  export RESTIC_REPOSITORY="swift:mysql_${name}:/"
+                  export RESTIC_PASSWORD="${mysql_admin_password}"
+                  "{{restic_binary_path}}/restic" init
+                args:
+                  executable: /bin/bash
+              - name: create first backup
+                shell: /bin/bash -x /usr/local/restic/files_backup.sh &> /var/log/firstbackup
+                args:
+                  executable: /bin/bash
+              #- name: create first backup
+              #  shell: systemctl start backup-files.service
+              #- name: wait the end of the backup
+              #  shell: while [ "$(systemctl is-active backup-files.service)" = "active" ]; do sleep 1; done
+              #  args:
+              #    executable: /bin/bash
+            when: bootstrap == true
 
       - name: register node
         hosts: 127.0.0.1
