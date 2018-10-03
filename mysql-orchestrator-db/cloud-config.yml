@@ -162,6 +162,8 @@ write_files:
       - name: backup
         hosts: 127.0.0.1
         pre_tasks:
+          - set_fact:
+              restic_binary_path: /usr/local/bin
           - name: install backup requirements
             package: name="{{ item }}"
             with_items:
@@ -276,7 +278,7 @@ write_files:
               - name: download restic https://github.com/restic/restic/pull/1719#pullrequestreview-119247068
                 get_url:
                   url: https://swift.it-mil1.entercloudsuite.com/v1/KEY_d51f5387474f40c6bd2975ccf34c7ea0/resticbin/restic
-                  dest: /usr/local/bin/restic
+                  dest: "{{ restic_binary_path }}/restic"
                   mode: 0540
               - name: restore data
                 shell: |
@@ -447,7 +449,7 @@ write_files:
                   source /usr/local/restic/customer-data.sh
                   export RESTIC_REPOSITORY="swift:mysql_${name}:/"
                   export RESTIC_PASSWORD="${mysql_admin_password}"
-                  "{{restic_binary_path}}/restic" init
+                  "{{ restic_binary_path }}/restic init"
                 args:
                   executable: /bin/bash
               - name: create first backup
