@@ -14,7 +14,7 @@ variable "keypair" {
 }
 
 variable "image" {
-  default = ""
+  default = "Microsoft Windows Server 2016 Datacenter x64"
 }
 
 variable "flavor" {

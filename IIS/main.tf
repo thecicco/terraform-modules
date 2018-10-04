@@ -21,3 +21,4 @@ data "template_file" "cloud-config" {
   vars {
     password = "${var.password}"
   }
+}
