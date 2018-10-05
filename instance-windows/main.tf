@@ -1,4 +1,4 @@
-module "Windows-istance" {
+module "windows-istance" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7"
   name = "${var.name}"
   image = "${var.image}"
