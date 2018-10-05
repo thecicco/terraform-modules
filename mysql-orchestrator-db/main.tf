@@ -12,7 +12,7 @@ module "mysql" {
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
   tags = {
-    "server_group" = "MYSQL"
+    "server_group" = "${var.name}"
   }
 }
 

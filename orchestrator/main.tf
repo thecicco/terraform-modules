@@ -11,7 +11,7 @@ module "orchestrator" {
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
   tags = {
-    "server_group" = "ORCHESTRATOR"
+    "server_group" = "${var.name}"
   }
 }
 
