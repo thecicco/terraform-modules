@@ -10,9 +10,6 @@ module "IIS" {
   sec_group = "${var.sec_group}"
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
-  tags = {
-    "server_group" = "IIS"
-  }
 }
 
 data "template_file" "cloud-config" {

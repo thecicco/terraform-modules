@@ -14,7 +14,7 @@ variable "keypair" {
 }
 
 variable "image" {
-  default = "Microsoft Windows Server 2016 Datacenter x64"
+  default = "Microsoft Windows Server 2016 Datacenter x64 WinRM"
 }
 
 variable "flavor" {
@@ -33,5 +33,5 @@ variable "region" {
 }
 
 variable "password" {
-  default = "Cambiami01!"
+  default = "P4ssw0rd!"
 }
