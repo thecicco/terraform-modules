@@ -1,4 +1,4 @@
-# terraform-module-windows-IIS
+# terraform-module-windows
 
 ## Example
 
@@ -39,9 +39,9 @@ provider "openstack" {
   password = "password"
 }
 
-module "windows-iis" {
-  source = "github.com/lorenzocomotti/terraform-module-IIS"
-  name = "Windows-IIS"
+module "windows" {
+  source = "github.com/entercloudsuite/terraform-module//instance-windows?ref=2.7"
+  name = "windows"
   quantity = 1
   external = "true"
   image = "<your-windows-image>"
