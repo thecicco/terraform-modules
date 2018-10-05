@@ -35,3 +35,11 @@ variable "region" {
 variable "password" {
   default = "P4ssw0rd!"
 }
+
+variable "tags" {
+  type = "map"
+  default = {
+    role = "generic"
+    status = "generic"
+  }
+}
