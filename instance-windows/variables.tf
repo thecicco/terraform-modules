@@ -3,7 +3,6 @@ variable "quantity" {
 }
 
 variable "name" {
-  default = "Windows-IIS"
 }
 
 variable "sec_group" {
@@ -33,7 +32,6 @@ variable "region" {
 }
 
 variable "password" {
-  default = "P4ssw0rd!"
 }
 
 variable "tags" {

@@ -1,4 +1,4 @@
-module "Windows-istance" {
+module "windows-istance" {
   source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7"
   name = "${var.name}"
   image = "${var.image}"
@@ -11,7 +11,7 @@ module "Windows-istance" {
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
   tags = {
-    "server_group" = "windows-istance"
+    "server_group" = "${var.name}"
   }
 }
 
