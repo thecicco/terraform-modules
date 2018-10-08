@@ -6,29 +6,8 @@ write_files:
         hosts: 127.0.0.1
         vars:
           orchestrator_http_auth_basic: '${orchestrator_http_auth_user}:${orchestrator_http_auth_password}'
-        pre_tasks:
-          - name: install curl
-            package: name=curl
-          - name: install percona mysql repo
-            shell: curl -O https://repo.percona.com/apt/percona-release_0.1-4.$(lsb_release -sc)_all.deb && dpkg -i percona-release_0.1-4.$(lsb_release -sc)_all.deb
-            args:
-              creates: /etc/apt/sources.list.d/percona-release.list
-              executable: /bin/bash
-              chdir: /tmp
-          - name: refresh apt cache
-            apt:
-              update_cache: yes
         roles:
-          - role: entercloudsuite.mysql
-            mysql_packages:
-              - percona-server-server-5.7
-            mysql_users:
-              - name: orchestrator
-                host: '127.0.0.1'
-                password: orchestrator
-                priv: '*.*:ALL'
           - role: entercloudsuite.orchestrator
-            orchestrator_version: 3.0.10
             orchestrator_mysql_user: orchestrator
             orchestrator_mysql_password: orchestrator
             orchestrator_mysql_topology_user: orchestrator_${orchestrator_user}
@@ -76,7 +55,6 @@ write_files:
                   server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:${orchestrator_service_port} check
           - role: entercloudsuite.consul
-            consul_version: 1.2.2
             consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
             consul_configs:
               main:

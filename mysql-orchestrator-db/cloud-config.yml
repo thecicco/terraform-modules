@@ -661,7 +661,6 @@ write_files:
                 backup: true
                 wait: '0s'
           - role: entercloudsuite.consul
-            consul_version: 1.2.2
             consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
             consul_configs:
               main:
