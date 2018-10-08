@@ -1,6 +1,6 @@
 #ps1
 
-$Username = "Ansible"
+$Username = "ansible"
 $Password = "${password}"
 
 $group = "Administrators"
