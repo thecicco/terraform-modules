@@ -1,7 +1,7 @@
 #ps1
 
 $Username = "Ansible"
-$Password = ${password}
+$Password = "${password}"
 
 $group = "Administrators"
 
