@@ -18,7 +18,7 @@ module "wordpress" {
 }
 
 data "template_file" "cloud-config" {
-  template = "${file("cloud-config.yml")}"
+  template = "${file("${path.module}/cloud-config.yml")}"
   vars {
     db_password = "${var.db_password}"
   }
