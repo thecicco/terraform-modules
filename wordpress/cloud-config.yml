@@ -37,7 +37,7 @@ write_files:
               ports:
                 - "3306:3306"
               env:
-                MYSQL_ROOT_PASSWORD: '$(db_password}'
+                MYSQL_ROOT_PASSWORD: '${db_password}'
           - name: Run Wordpress container
             docker_container:
               name: 'wp'
