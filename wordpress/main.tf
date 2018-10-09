@@ -4,7 +4,6 @@ module "wordpress" {
   name = "${var.name}"
   image = "ecs-docker 1.0.0"
   quantity = 1
-  external = "${var.external}"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
   sec_group = "${var.sec_group}"
