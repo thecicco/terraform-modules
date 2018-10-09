@@ -93,7 +93,6 @@ variable "keypair" {
 }
 
 variable "image" {
-  default = ""
 }
 
 variable "flavor" {
