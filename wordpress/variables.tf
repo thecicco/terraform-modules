@@ -19,6 +19,11 @@ variable "network_name" {
 }
 
 variable "discovery" {
+  default = "true"
+}
+
+variable "external" {
+  default = "false"
 }
 
 variable "region" {

@@ -4,7 +4,7 @@ module "wordpress" {
   name = "${var.name}"
   image = "ecs-docker 1.0.0"
   quantity = 1
-  external = "true"
+  external = "${var.external}"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
   sec_group = "${var.sec_group}"
@@ -14,6 +14,7 @@ module "wordpress" {
   }
   userdata = "${data.template_file.cloud-config.*.rendered}"
   discovery = "${var.discovery}"
+  external = "${var.external}"
   region = "${var.region}"
 }
 
