@@ -47,6 +47,11 @@ write_files:
             haproxy_user: ${orchestrator_user}
             haproxy_pass: ${orchestrator_password}
             haproxy_conf: |
+              resolvers dns-consul
+                  nameserver dns consul.service.${consul_datacenter}.consul:53
+                  accepted_payload_size 8192
+                  hold valid 1s
+
               listen orchestrator
                   bind  *:${orchestrator_port}
                   mode tcp
@@ -57,7 +62,7 @@ write_files:
                   timeout check 300
                   timeout server 30s
                   timeout client 30s
-                  default-server port 3000 fall 1 inter 1000 rise 1 downinter 1000 on-marked-down shutdown-sessions weight 10 init-addr none
+                  default-server port 3000 fall 1 inter 1000 rise 1 downinter 1000 on-marked-down shutdown-sessions weight 10 init-addr last,libc,none resolvers dns-consul
                   server ${name}-0 ${name}-0.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:${orchestrator_service_port} check
