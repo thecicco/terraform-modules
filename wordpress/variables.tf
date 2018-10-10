@@ -1,6 +1,9 @@
 variable "db_password" {
 }
 
+variable "db_host" {
+}
+
 variable "name" {
 }
 
@@ -20,6 +23,10 @@ variable "network_name" {
 
 variable "discovery" {
   default = "false"
+}
+
+variable "quantity" {
+  default = 1
 }
 
 variable "external" {
