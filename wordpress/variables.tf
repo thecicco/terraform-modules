@@ -25,6 +25,10 @@ variable "discovery" {
   default = "false"
 }
 
+variable "quantity" {
+  default = 1
+}
+
 variable "external" {
   default = "true"
 }
