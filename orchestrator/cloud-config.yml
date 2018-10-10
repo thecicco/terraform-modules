@@ -12,6 +12,7 @@ write_files:
               url: https://swift.it-mil1.entercloudsuite.com/v1/KEY_d51f5387474f40c6bd2975ccf34c7ea0/orchestratorbin/orchestrator
               dest: "/usr/local/bin/orchestrator"
               mode: 0540
+              force: yes
         roles:
           - role: entercloudsuite.orchestrator
             orchestrator_mysql_user: orchestrator
