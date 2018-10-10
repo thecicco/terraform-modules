@@ -1,15 +1,31 @@
-
-# Create instance
 module "haproxy" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.6"
+  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7"
   name = "${var.name}"
-  region = "${var.region}"
-  image = "${var.image}"
   quantity = "${var.quantity}"
   external = "${var.external}"
-  discovery = "true"
+  region = "${var.region}"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
-  keypair = "${var.keyname}"
-  tags = "${var.tags}"
+  sec_group = "${var.sec_group}"
+  discovery = "${var.discovery}"
+  keypair = "${var.keypair}"
+  userdata = "${data.template_file.cloud-config.*.rendered}"
+  tags = {
+    "server_group" = "${var.name}"
+  }
+}
+data "template_file" "cloud-config" {
+  template = "${file("${path.module}/cloud-config.yml")}"
+  count = "${var.quantity}"
+  vars {
+    name = "${var.name}"
+    number = "${count.index}"
+    hostname = "${var.name}-${count.index}"
+    haproxy_user = "${var.haproxy_user}"
+    haproxy_pass = "${var.haproxy_pass}"
+    haproxy_global = "${var.haproxy_global}"
+    haproxy_defaults = "${var.haproxy_defaults}"
+    haproxy_stats = "${var.haproxy_stats}"
+    haproxy_conf = "${indent(15,var.haproxy_conf)}"
+  }
 }
