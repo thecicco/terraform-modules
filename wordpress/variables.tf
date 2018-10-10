@@ -1,6 +1,9 @@
 variable "db_password" {
 }
 
+variable "db_host" {
+}
+
 variable "name" {
 }
 

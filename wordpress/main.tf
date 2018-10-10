@@ -21,5 +21,6 @@ data "template_file" "cloud-config" {
   template = "${file("${path.module}/cloud-config.yml")}"
   vars {
     db_password = "${var.db_password}"
+    db_host = "${var.db_host}"
   }
 }
