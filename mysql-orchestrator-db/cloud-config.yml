@@ -629,7 +629,7 @@ write_files:
                 listen write-pool
                     bind *:${mysql_master_port}
                     mode tcp
-                    server {{key "mysql/master/${name}/hostname"}} {{key "mysql/master/${name}/ipv4"}}:{{key "mysql/master/${name}/port"}} check port {{key "mysql/master/${name}/port"}}
+                    server {{key "mysql/master/${name}/hostname"}} {{key "mysql/master/${name}/ipv4"}}:{{key "mysql/master/${name}/port"}} check port {{key "mysql/master/${name}/port"}} init-addr none
                 {% endraw %}
               dest: /opt/consul-template/templates/master.ctmpl
         roles:
@@ -648,7 +648,7 @@ write_files:
                   option tcp-check
                   tcp-check expect string is\ running.
                   balance leastconn
-                  server-template mysql 0-99 ${name}.service.automium.consul:${mysql_port} check port 9300 resolvers dns-consul
+                  server-template mysql 0-99 ${name}.service.automium.consul:${mysql_port} check port 9300 resolvers dns-consul init-addr none
           - role: entercloudsuite.consul-template
             consul_template_use_systemd: true
             consul_template_consul_server: ${consul}
