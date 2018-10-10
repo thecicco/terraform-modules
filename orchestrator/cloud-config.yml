@@ -6,6 +6,12 @@ write_files:
         hosts: 127.0.0.1
         vars:
           orchestrator_http_auth_basic: '${orchestrator_http_auth_user}:${orchestrator_http_auth_password}'
+        pre_tasks:
+          - name: download fixed orchestrator bin https://github.com/github/orchestrator/pull/599
+            get_url:
+              url: https://swift.it-mil1.entercloudsuite.com/v1/KEY_d51f5387474f40c6bd2975ccf34c7ea0/orchestratorbin/orchestrator
+              dest: "/usr/local/bin/orchestrator"
+              mode: 0540
         roles:
           - role: entercloudsuite.orchestrator
             orchestrator_mysql_user: orchestrator
