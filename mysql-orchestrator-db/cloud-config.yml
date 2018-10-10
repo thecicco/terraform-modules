@@ -685,7 +685,7 @@ write_files:
                   - "${consul}"
 
 
-    path: /tmp/cloud/playbook.yml
+    path: /usr/src/cloud/playbook.yml
     permissions: '0400'
   - content: |
       - name: pmm_client
@@ -714,7 +714,7 @@ write_files:
                 password: root
             when: '"${pmm_server}" != ""'
 
-    path: /tmp/cloud/metering.yml
+    path: /usr/src/cloud/metering.yml
     permissions: '0400'
 
 runcmd:

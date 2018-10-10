@@ -79,7 +79,7 @@ write_files:
                   - "${consul}"
             when: ("${consul}" != "")
 
-    path: /tmp/cloud/playbook.yml
+    path: /usr/src/cloud/playbook.yml
     permissions: '0400'
 
 runcmd:
