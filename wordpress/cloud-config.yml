@@ -34,6 +34,7 @@ write_files:
               image: 'mariadb'
               state: 'started'
               network_mode: "host"
+              restart_policy: "always"
               ports:
                 - "3306:3306"
               env:
@@ -44,10 +45,11 @@ write_files:
               image: 'wordpress'
               state: 'started'
               network_mode: "host"
+              restart_policy: "always"
               ports:
                 - "80:80"
               env:
-                WORDPRESS_DB_HOST: '127.0.0.1'
+                WORDPRESS_DB_HOST: '${db_host}'
                 WORDPRESS_DB_PASSWORD: '${db_password}'
 
     path: /tmp/playbook.yml
