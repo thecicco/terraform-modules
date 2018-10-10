@@ -6,8 +6,8 @@ write_files:
         hosts: 127.0.0.1
         roles:
           - role: entercloudsuite.haproxy
-            haproxy_user: ${haproxy_pass}
-            haproxy_pass: ${haproxy_user}
+            haproxy_user: ${haproxy_user}
+            haproxy_pass: ${haproxy_pass}
             haproxy_conf: |
               ${haproxy_conf}
     path: /tmp/cloud/playbook.yml
@@ -15,7 +15,7 @@ write_files:
 
   - content: |
       - src: entercloudsuite.haproxy
-        version: 1.1.3
+        version: 1.1.4
 
     path: /tmp/cloud/requirements.yml
     permissions: '0400'

@@ -25,9 +25,8 @@ variable "network_name" {
 }
 
 variable "image" {
-  default = "ecs-haproxy 1.0.3"
+  default = "ecs-haproxy 1.1.4"
 }
-
 
 variable "discovery" {
   default = "true"

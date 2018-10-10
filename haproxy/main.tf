@@ -10,6 +10,7 @@ module "haproxy" {
   discovery = "${var.discovery}"
   keypair = "${var.keypair}"
   userdata = "${data.template_file.cloud-config.*.rendered}"
+  image = "${var.image}"
   tags = {
     "server_group" = "${var.name}"
   }
