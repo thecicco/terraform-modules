@@ -2,33 +2,121 @@
 
 write_files:
   - content: |
-      - name: bootstrap phase
+      - name: install orchestrator
+        hosts: 127.0.0.1
+        vars:
+          orchestrator_http_auth_basic: '${orchestrator_http_auth_user}:${orchestrator_http_auth_password}'
+        roles:
+          - role: entercloudsuite.orchestrator
+            orchestrator_mysql_user: orchestrator
+            orchestrator_mysql_password: orchestrator
+            orchestrator_mysql_topology_user: orchestrator_${orchestrator_user}
+            orchestrator_mysql_topology_password: ${orchestrator_password}
+            orchestrator_read_only: false
+            orchestrator_super_read_only: true
+            orchestrator_mysql_compatible_version:
+            orchestrator_listen_address: :${orchestrator_service_port}
+            orchestrator_kv_consul_address: ${consul}:${consul_port}
+            orchestrator_recover_master_cluster_filters: ["*"]
+            orchestrator_recover_intermediate_master_cluster_filters: ["*"]
+            orchestrator_master_failover_lost_instances_downtime_minutes: 1
+            orchestrator_failure_detection_period_block_minutes: 1
+            orchestrator_recovery_period_block_seconds: 30
+            orchestrator_detect_cluster_domain_query:
+            orchestrator_detect_datacenter_query:
+            orchestrator_replication_lag_query:
+            orchestrator_pseudo_gtid_pattern:
+            orchestrator_detect_pseudo_gtid_query:
+            orchestrator_authentication_method: ${orchestrator_authentication_method}
+            orchestrator_http_auth_user: ${orchestrator_http_auth_user}
+            orchestrator_http_auth_password: ${orchestrator_http_auth_password}
+            orchestrator_url_prefix:
+            orchestrator_raft_enabled: ${orchestrator_raft_enabled}
+            orchestrator_raft_data_dir: "${orchestrator_raft_data_dir}"
+            orchestrator_raft_bind: "{{ ansible_default_ipv4.address }}"
+            orchestrator_raft_default_port: ${orchestrator_raft_default_port}
+            orchestrator_raft_nodes: ${orchestrator_raft_nodes}
+          - role: entercloudsuite.haproxy
+            haproxy_user: ${orchestrator_user}
+            haproxy_pass: ${orchestrator_password}
+            haproxy_conf: |
+              resolvers dns-consul
+                  nameserver dns consul.service.${consul_datacenter}.consul:53
+                  accepted_payload_size 8192
+                  hold valid 1s
+
+              listen orchestrator
+                  bind  *:${orchestrator_port}
+                  mode tcp
+                  option httpchk GET /api/leader-check HTTP/1.0\r\nAuthorization:\ Basic\ {{ orchestrator_http_auth_basic | b64encode }}
+                  balance first
+                  retries 1
+                  timeout connect 1000
+                  timeout check 300
+                  timeout server 30s
+                  timeout client 30s
+                  default-server port 3000 fall 1 inter 1000 rise 1 downinter 1000 on-marked-down shutdown-sessions weight 10 init-addr last,libc,none resolvers dns-consul
+                  server ${name}-0 ${name}-0.node.${consul_datacenter}.consul:${orchestrator_service_port} check
+                  server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:${orchestrator_service_port} check
+                  server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:${orchestrator_service_port} check
+          - role: entercloudsuite.consul
+            consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
+            consul_configs:
+              main:
+                bind_addr: 0.0.0.0
+                client_addr: 0.0.0.0
+                node_name: "{{ ansible_hostname }}"
+                data_dir: "{{ consul_data_dir }}"
+                encrypt: "${consul_encrypt}"
+                datacenter: "${consul_datacenter}"
+                enable_syslog: true
+                server: false
+                ui: true
+                enable_script_checks: true
+                services:
+                  - name: "${name}"
+                    checks:
+                      - http: "http://${orchestrator_user}:${orchestrator_password}@127.0.0.1:8282"
+                        method: "GET"
+                        interval: "10s"
+                rejoin_after_leave: true
+                retry_join:
+                  - "${consul}"
+            when: ("${consul}" != "")
+
+
+      - name: get orchestrator leader
         hosts: 127.0.0.1
         tasks:
-          - name: bootstrap phase - create consul session
-            uri:
-              url: http://${consul}:${consul_port}/v1/session/create
-              method: PUT
-              status_code: 200
-              body_format: json
-            register: bootstrap_session_consul
-            until: bootstrap_session_consul.failed == false
-            delay: 1
-            retries: 6000
-          - set_fact:
-              bootstrap_session: "{{ bootstrap_session_consul.json | json_query('ID') }}" 
-          - name: bootstrap phase - aquire consul lock
-            uri:
-              url: "http://${consul}:${consul_port}/v1/kv/orchestrator/master/${name}/custom_bootstrap?acquire={{ bootstrap_session }}"
-              method: PUT
-              status_code: 200
-              body: '{ name: ${hostname}.node.${consul_datacenter}.consul }'
-            register: bootstrap_consul
-            until: bootstrap_consul.failed == false
-            delay: 1
-            retries: 6000
-          - set_fact:
-              bootstrap: "{{ bootstrap_consul.json | bool }}" 
+          - block:
+              - name: set bootstrap default
+                set_fact:
+                  bootstrap: false
+              - name: wait leader election
+                uri:
+                  url: http://${orchestrator_user}:${orchestrator_password}@${name}.service.${consul_datacenter}.consul/api/raft-state
+                  status_code: 200
+                  body_format: json
+                register: orchestrator_api_leader_elected
+                until: orchestrator_api_leader_elected.json == "Leader"
+                delay: 1
+                retries: 6000
+              - name: get leader node
+                uri:
+                  url: http://${orchestrator_user}:${orchestrator_password}@${name}.service.${consul_datacenter}.consul/api/raft-leader
+                  status_code: 200
+                  body_format: json
+                register: orchestrator_api_leader
+                until: orchestrator_api_leader.failed == false
+                delay: 1
+                retries: 6000
+              - name: set leader
+                set_fact:
+                  orchestrator_leader: "{{ orchestrator_api_leader.json.split(':')[0] | regex_replace('\"','') }}"
+              - name: set bootstrap
+                set_fact:
+                  bootstrap: true
+                when: orchestrator_leader == ansible_default_ipv4.address
 
       - name: generate and spread ssh keys
         hosts: 127.0.0.1
@@ -105,17 +193,26 @@ write_files:
               user: root
               key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
 
-      - name: create orchestrator node from a health raft node
+      - name: sync orchestrator node from a health raft node
         hosts: 127.0.0.1
         pre_tasks:
           - block:
-              - name: wait a healt orchestrator node to be reachable
+              - name: wait ssh to be reachable on leader node
                 wait_for:
-                  port: 2222
+                  port: 22
                   host: ${name}.service.${consul_datacenter}.consul
                   search_regex: OpenSSH
                   timeout: 6000
+              - name: wait mysql to be reachable on leader node
+                wait_for:
+                  port: 3306
+                  host: ${name}.service.${consul_datacenter}.consul
+                  timeout: 6000
                 connection: local
+              - name: stop orchestrator
+                service: name=orchestrator state=stopped
+              - name: clean content of /var/lib/orchestrator
+                file: path=/var/lib/orchestrator/ state=absent
               - name: stop mysql
                 service: name=mysql state=stopped
               - name: clean content of /var/lib/mysql
@@ -123,9 +220,8 @@ write_files:
             when: bootstrap == false
         roles:
           - role: entercloudsuite.mysql-innobackupex
-            innobackupex_source_server: ${name}.service.${consul_datacenter}.consul
+            innobackupex_source_server: "{{ orchestrator_leader }}"
             innobackupex_destination: /var/lib/mysql
-            innobackupex_ssh_port: 2222
             when: bootstrap == false
         post_tasks:
           - block:
@@ -133,105 +229,9 @@ write_files:
                 file: dest=/var/lib/mysql owner=mysql group=mysql recurse=yes
               - name: start mysql
                 service: name=mysql state=started
+              - name: start orchestrator
+                service: name=orchestrator state=started
             when: bootstrap == false
-
-      - name: install orchestrator
-        hosts: 127.0.0.1
-        vars:
-          orchestrator_http_auth_basic: '${orchestrator_http_auth_user}:${orchestrator_http_auth_password}'
-        roles:
-          - role: entercloudsuite.orchestrator
-            orchestrator_mysql_user: orchestrator
-            orchestrator_mysql_password: orchestrator
-            orchestrator_mysql_topology_user: orchestrator_${orchestrator_user}
-            orchestrator_mysql_topology_password: ${orchestrator_password}
-            orchestrator_read_only: false
-            orchestrator_super_read_only: true
-            orchestrator_mysql_compatible_version:
-            orchestrator_listen_address: :${orchestrator_service_port}
-            orchestrator_kv_consul_address: ${consul}:${consul_port}
-            orchestrator_recover_master_cluster_filters: ["*"]
-            orchestrator_recover_intermediate_master_cluster_filters: ["*"]
-            orchestrator_master_failover_lost_instances_downtime_minutes: 1
-            orchestrator_failure_detection_period_block_minutes: 1
-            orchestrator_recovery_period_block_seconds: 30
-            orchestrator_detect_cluster_domain_query:
-            orchestrator_detect_datacenter_query:
-            orchestrator_replication_lag_query:
-            orchestrator_pseudo_gtid_pattern:
-            orchestrator_detect_pseudo_gtid_query:
-            orchestrator_authentication_method: ${orchestrator_authentication_method}
-            orchestrator_http_auth_user: ${orchestrator_http_auth_user}
-            orchestrator_http_auth_password: ${orchestrator_http_auth_password}
-            orchestrator_url_prefix:
-            orchestrator_raft_enabled: ${orchestrator_raft_enabled}
-            orchestrator_raft_data_dir: "${orchestrator_raft_data_dir}"
-            orchestrator_raft_bind: "{{ ansible_default_ipv4.address }}"
-            orchestrator_raft_default_port: ${orchestrator_raft_default_port}
-            orchestrator_raft_nodes: ${orchestrator_raft_nodes}
-          - role: entercloudsuite.haproxy
-            haproxy_user: ${orchestrator_user}
-            haproxy_pass: ${orchestrator_password}
-            haproxy_conf: |
-              resolvers dns-consul
-                  nameserver dns consul.service.${consul_datacenter}.consul:53
-                  accepted_payload_size 8192
-                  hold valid 1s
-
-              listen orchestrator
-                  bind  *:${orchestrator_port}
-                  mode tcp
-                  option httpchk GET /api/leader-check HTTP/1.0\r\nAuthorization:\ Basic\ {{ orchestrator_http_auth_basic | b64encode }}
-                  balance first
-                  retries 1
-                  timeout connect 1000
-                  timeout check 300
-                  timeout server 30s
-                  timeout client 30s
-                  default-server port 3000 fall 1 inter 1000 rise 1 downinter 1000 on-marked-down shutdown-sessions weight 10 init-addr last,libc,none resolvers dns-consul
-                  server ${name}-0 ${name}-0.node.${consul_datacenter}.consul:${orchestrator_service_port} check
-                  server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:${orchestrator_service_port} check
-                  server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:${orchestrator_service_port} check
-
-              listen orchestratorr
-                  bind  *:2222
-                  mode tcp
-                  option httpchk GET /api/raft-health HTTP/1.0\r\nAuthorization:\ Basic\ YWRtaW46aWVMNmVjb3BlaWgxY2h1eTRqYW9zZWl2
-                  balance first
-                  retries 1
-                  timeout connect 1000
-                  timeout check 300
-                  timeout server 30s
-                  timeout client 30s
-                  default-server port 3000 fall 1 inter 1000 rise 1 downinter 1000 on-marked-down shutdown-sessions weight 10 init-addr last,libc,none resolvers dns-consul
-                  server ${name}-0 ${name}-0.node.${consul_datacenter}.consul:22 check
-                  server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:22 check
-                  server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:22 check
-          - role: entercloudsuite.consul
-            consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
-            consul_configs:
-              main:
-                bind_addr: 0.0.0.0
-                client_addr: 0.0.0.0
-                node_name: "{{ ansible_hostname }}"
-                data_dir: "{{ consul_data_dir }}"
-                encrypt: "${consul_encrypt}"
-                datacenter: "${consul_datacenter}"
-                enable_syslog: true
-                server: false
-                ui: true
-                enable_script_checks: true
-                services:
-                  - name: "${name}"
-                    checks:
-                      - http: "http://${orchestrator_user}:${orchestrator_password}@127.0.0.1:8282"
-                        method: "GET"
-                        interval: "10s"
-                rejoin_after_leave: true
-                retry_join:
-                  - "${consul}"
-            when: ("${consul}" != "")
-
     path: /usr/src/cloud/playbook.yml
     permissions: '0400'
 
