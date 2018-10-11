@@ -276,11 +276,6 @@ write_files:
             when: ( bootstrap == false)
           - name: restore latest mysql data release
             block:
-              - name: download restic https://github.com/restic/restic/pull/1719#pullrequestreview-119247068
-                get_url:
-                  url: https://swift.it-mil1.entercloudsuite.com/v1/KEY_d51f5387474f40c6bd2975ccf34c7ea0/resticbin/restic
-                  dest: "{{ restic_binary_path }}/restic"
-                  mode: 0540
               - name: restore data
                 shell: |
                   source /usr/local/restic/customer-data.sh

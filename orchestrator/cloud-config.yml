@@ -2,17 +2,143 @@
 
 write_files:
   - content: |
+      - name: bootstrap phase
+        hosts: 127.0.0.1
+        tasks:
+          - name: bootstrap phase - create consul session
+            uri:
+              url: http://${consul}:${consul_port}/v1/session/create
+              method: PUT
+              status_code: 200
+              body_format: json
+            register: bootstrap_session_consul
+            until: bootstrap_session_consul.failed == false
+            delay: 1
+            retries: 6000
+          - set_fact:
+              bootstrap_session: "{{ bootstrap_session_consul.json | json_query('ID') }}" 
+          - name: bootstrap phase - aquire consul lock
+            uri:
+              url: "http://${consul}:${consul_port}/v1/kv/orchestrator/master/${name}/custom_bootstrap?acquire={{ bootstrap_session }}"
+              method: PUT
+              status_code: 200
+              body: '{ name: ${hostname}.node.${consul_datacenter}.consul }'
+            register: bootstrap_consul
+            until: bootstrap_consul.failed == false
+            delay: 1
+            retries: 6000
+          - set_fact:
+              bootstrap: "{{ bootstrap_consul.json | bool }}" 
+
+      - name: generate and spread ssh keys
+        hosts: 127.0.0.1
+        tasks:
+          - block:
+              - name: generate ssh keys
+                shell: ssh-keygen -b 2048 -t rsa -f /tmp/id_rsa -q -N "" -P ${orchestrator_password}
+                args:
+                  creates: /tmp/id_rsa
+              - name: put private ssh key
+                uri:
+                  url: "http://${consul}:${consul_port}/v1/kv/orchestrator/master/${name}/custom_ssh_key"
+                  method: PUT
+                  status_code: 200
+                  body: "{{ lookup('file', '/tmp/id_rsa') }}"
+                register: ssh_key_consul
+                until: ssh_key_consul.failed == false
+                delay: 1
+                retries: 6000
+              - name: put public ssh key
+                uri:
+                  url: "http://${consul}:${consul_port}/v1/kv/orchestrator/master/${name}/custom_ssh_key_pub"
+                  method: PUT
+                  status_code: 200
+                  body: "{{ lookup('file', '/tmp/id_rsa.pub') }}"
+                register: ssh_key_pub_consul
+                until: ssh_key_pub_consul.failed == false
+                delay: 1
+                retries: 6000
+              - name: remove keys from temp dir
+                file:
+                  path: "{{ item }}"
+                  state: absent
+                with_items:
+                  - /tmp/id_rsa
+                  - /tmp/id_rsa.pub
+            when: bootstrap == true
+          - name: get private ssh key
+            uri:
+              url: http://${consul}:${consul_port}/v1/kv/orchestrator/master/${name}/custom_ssh_key
+              method: GET
+              status_code: 200
+              body_format: json
+            register: ssh_key_consul
+            until: ssh_key_consul.failed == false
+            delay: 1
+            retries: 6000
+          - name: write private encrypted ssh key
+            copy:
+              content: "{{ ssh_key_consul.json[0] | json_query('Value') | b64decode }}"
+              dest: /root/.ssh/id_rsa.enc
+              mode: 0400
+          - name: decrypt ssh keys
+            shell: openssl rsa -in /root/.ssh/id_rsa.enc -out /root/.ssh/id_rsa -passin pass:${orchestrator_password} && chmod 400 /root/.ssh/id_rsa
+            args:
+              creates: /root/.ssh/id_rsa
+          - name: get public ssh key
+            uri:
+              url: http://${consul}:${consul_port}/v1/kv/orchestrator/master/${name}/custom_ssh_key_pub
+              method: GET
+              status_code: 200
+              body_format: json
+            register: ssh_key_pub_consul
+            until: ssh_key_pub_consul.failed == false
+            delay: 1
+            retries: 6000
+          - name: write public ssh key
+            copy:
+              content: "{{ ssh_key_pub_consul.json[0] | json_query('Value') | b64decode }}"
+              dest: /root/.ssh/id_rsa.pub
+              mode: 0400
+          - name: enable ssh key for direct root access
+            authorized_key:
+              user: root
+              key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+
+      - name: create orchestrator node from a health raft node
+        hosts: 127.0.0.1
+        pre_tasks:
+          - block:
+              - name: wait a healt orchestrator node to be reachable
+                wait_for:
+                  port: 2222
+                  host: ${name}.service.${consul_datacenter}.consul
+                  search_regex: OpenSSH
+                  timeout: 6000
+                connection: local
+              - name: stop mysql
+                service: name=mysql state=stopped
+              - name: clean content of /var/lib/mysql
+                file: path=/var/lib/mysql/ state=absent
+            when: bootstrap == false
+        roles:
+          - role: entercloudsuite.mysql-innobackupex
+            innobackupex_source_server: ${name}.service.${consul_datacenter}.consul
+            innobackupex_destination: /var/lib/mysql
+            innobackupex_ssh_port: 2222
+            when: bootstrap == false
+        post_tasks:
+          - block:
+              - name: set mysql permission
+                file: dest=/var/lib/mysql owner=mysql group=mysql recurse=yes
+              - name: start mysql
+                service: name=mysql state=started
+            when: bootstrap == false
+
       - name: install orchestrator
         hosts: 127.0.0.1
         vars:
           orchestrator_http_auth_basic: '${orchestrator_http_auth_user}:${orchestrator_http_auth_password}'
-        pre_tasks:
-          - name: download fixed orchestrator bin https://github.com/github/orchestrator/pull/599
-            get_url:
-              url: https://swift.it-mil1.entercloudsuite.com/v1/KEY_d51f5387474f40c6bd2975ccf34c7ea0/orchestratorbin/orchestrator
-              dest: "/opt/orchestrator/orchestrator/usr/local/orchestrator/orchestrator"
-              mode: 0755
-              force: yes
         roles:
           - role: entercloudsuite.orchestrator
             orchestrator_mysql_user: orchestrator
@@ -66,6 +192,21 @@ write_files:
                   server ${name}-0 ${name}-0.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:${orchestrator_service_port} check
                   server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:${orchestrator_service_port} check
+
+              listen orchestratorr
+                  bind  *:2222
+                  mode tcp
+                  option httpchk GET /api/raft-health HTTP/1.0\r\nAuthorization:\ Basic\ YWRtaW46aWVMNmVjb3BlaWgxY2h1eTRqYW9zZWl2
+                  balance first
+                  retries 1
+                  timeout connect 1000
+                  timeout check 300
+                  timeout server 30s
+                  timeout client 30s
+                  default-server port 3000 fall 1 inter 1000 rise 1 downinter 1000 on-marked-down shutdown-sessions weight 10 init-addr last,libc,none resolvers dns-consul
+                  server ${name}-0 ${name}-0.node.${consul_datacenter}.consul:22 check
+                  server ${name}-1 ${name}-1.node.${consul_datacenter}.consul:22 check
+                  server ${name}-2 ${name}-2.node.${consul_datacenter}.consul:22 check
           - role: entercloudsuite.consul
             consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
             consul_configs:
