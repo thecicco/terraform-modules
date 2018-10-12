@@ -300,7 +300,7 @@ write_files:
                 user=${mysql_root_name}
                 password=${mysql_root_password}
 
-      - name: install mysql
+      - name: configure mysql
         hosts: 127.0.0.1
         pre_tasks:
           - name: stop mysql
@@ -314,12 +314,15 @@ write_files:
                 [mysqld]
                 # user options
                 ${mysql_user_options}
-                # optimizations
+                # read only options
                 read_only
                 super_read_only
+                port                              = ${mysql_port}
                 datadir                           = ${mysql_datadir}
                 innodb_buffer_pool_size           = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
                 server-id                         = "{{ 4294967294 | random }}"
+                innodb_flush_log_at_trx_commit    = 2
+                sync_binlog                       = 0
                 log_bin                           = mysql-bin
                 log-bin-index                     = mysql-bin.index
                 innodb_log_file_size              = 512M
@@ -332,6 +335,8 @@ write_files:
                 log-slave-updates                 = 1
                 relay_log_info_repository         = TABLE
                 master_info_repository            = TABLE
+                slave_parallel_type               = LOGICAL_CLOCK
+                slave_parallel_workers           = "{{ ansible_processor_vcpus }}"
                 # pmm options
                 log_output                        = file
                 slow_query_log                    = ON
@@ -347,6 +352,20 @@ write_files:
                 userstat                          = 1
           - name: startup mysql
             service: name=mysql state=started
+          - name: set super read only off
+            shell:
+              cmd: |
+                mysql -uroot -p${mysql_root_password} -e "set global super_read_only=false"
+          - name: upgrade mysql system tables
+            shell:
+              cmd: |
+                mysql_upgrade -s
+            register: mysql_upgrade
+            failed_when: mysql_upgrade.rc != 0 and mysql_upgrade.rc != 2
+          - name: set super read only off
+            shell:
+              cmd: |
+                mysql -uroot -p${mysql_root_password} -e "set global super_read_only=true"
         post_tasks:
           - block:
               - name: set read only off
@@ -613,20 +632,17 @@ write_files:
 
           - name: reload xinetd conf
             service: name=xinetd state=reloaded
-          - name: create consul template folder
-            file:
-              path: /opt/consul-template/templates
-              state: directory
           - name: copy haproxy conf
-            copy:
+            local_action:
+              module: copy
               content: |
                 {% raw %}
                 listen write-pool
-                    bind *:${mysql_master_port}
+                    bind *:3306
                     mode tcp
                     server {{key "mysql/master/${name}/hostname"}} {{key "mysql/master/${name}/ipv4"}}:{{key "mysql/master/${name}/port"}} check port {{key "mysql/master/${name}/port"}} init-addr last,libc,none
                 {% endraw %}
-              dest: /opt/consul-template/templates/master.ctmpl
+              dest: master.ctmpl
         roles:
           - role: entercloudsuite.haproxy
             haproxy_user: ${mysql_admin_name}
@@ -648,13 +664,15 @@ write_files:
             consul_template_use_systemd: true
             consul_template_consul_server: ${consul}
             consul_template_staging_area: /opt
+            consul_template_wait: 0s
+            consul_template_template_files:
+              - { src: master.ctmpl }
             consul_template_templates:
               - name: master.ctmpl
                 dest: /etc/haproxy/conf.d/master.cfg
                 cmd: service haproxy reload || true
                 perms: 666
                 backup: true
-                wait: '0s'
           - role: entercloudsuite.consul
             consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
             consul_configs:
@@ -704,7 +722,7 @@ write_files:
             pmm_client_db:
               mysql:
                 host: localhost
-                port: 3306
+                port: ${mysql_port}
                 username: root
                 password: root
             when: '"${pmm_server}" != ""'

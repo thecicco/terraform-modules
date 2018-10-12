@@ -211,8 +211,6 @@ write_files:
                 connection: local
               - name: stop orchestrator
                 service: name=orchestrator state=stopped
-              - name: clean content of /var/lib/orchestrator
-                file: path=/var/lib/orchestrator/ state=absent
               - name: stop mysql
                 service: name=mysql state=stopped
               - name: clean content of /var/lib/mysql

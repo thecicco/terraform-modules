@@ -7,15 +7,15 @@ variable "name" {
 }
 
 variable "mysql_port" {
-  default = "3306"
+  default = "33306"
 }
 
 variable "mysql_master_port" {
-  default = "3307"
+  default = "3306"
 }
 
 variable "mysql_slaves_port" {
-  default = "3308"
+  default = "3307"
 }
 
 variable "mysql_datadir" {
