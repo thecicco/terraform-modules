@@ -119,7 +119,7 @@ variable "region" {
 }
 
 variable "pmm_server" {
-  default = ""
+  default = "metricspercona.service.automium.consul"
 }
 
 variable "pmm_user" {
@@ -127,7 +127,7 @@ variable "pmm_user" {
 }
 
 variable "pmm_password" {
-  default = ""
+  default = "admin"
 }
 
 variable "os_api" {
