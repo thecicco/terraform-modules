@@ -319,6 +319,7 @@ write_files:
                 super_read_only
                 port                              = ${mysql_port}
                 datadir                           = ${mysql_datadir}
+                max_connections                   = 60000
                 innodb_buffer_pool_size           = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
                 server-id                         = "{{ 4294967294 | random }}"
                 innodb_flush_log_at_trx_commit    = 2
