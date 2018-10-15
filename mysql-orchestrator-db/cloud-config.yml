@@ -698,37 +698,96 @@ write_files:
                 retry_join:
                   - "${consul}"
 
-
-    path: /usr/src/cloud/playbook.yml
-    permissions: '0400'
-  - content: |
-      - name: pmm_client
+      - name: metrics percona
         hosts: 127.0.0.1
-        roles:
-          - role: entercloudsuite.pmm_client
-            pmm_client_server_host: ${pmm_server}
-            pmm_client_server_port: 443
-            pmm_client_server_basic_auth: True
-            pmm_client_server_use_ssl: True
-            pmm_client_server_basic_auth_username: ${pmm_user}
-            pmm_client_server_basic_auth_password: ${pmm_password}
-            pmm_client_add_services:
-              - linux:metrics
-              - mysql:metrics
-              - mysql:queries
-            pmm_client_start_services:
-              - linux:metrics
-              - mysql:metrics
-              - mysql:queries
-            pmm_client_db:
-              mysql:
-                host: localhost
-                port: ${mysql_port}
-                username: root
-                password: root
+        tasks:
+          - block:
+              - name: deregister host to pmm
+                uri:
+                  url: http://${pmm_server}/v1/catalog/deregister?dc=dc1
+                  method: PUT
+                  status_code: 200
+                  body_format: json
+                  user: ${pmm_user}
+                  password: ${pmm_password}
+                  force_basic_auth: yes
+                  body: '{"Datacenter":"dc1","Node":"${hostname}"}'
+                register: deregister_pmm
+                until: deregister_pmm.failed == false
+                delay: 1
+                retries: 6000
+              - name: systemd unit for connect pmm client to server
+                copy:
+                  dest: /usr/src/cloud/metricspercona.yml
+                  mode: 0550
+                  content: |
+                    - name: pmm_client
+                      hosts: 127.0.0.1
+                      roles:
+                        - role: entercloudsuite.pmm_client
+                          pmm_client_server_host: ${pmm_server}
+                          pmm_client_server_port: 443
+                          pmm_client_server_basic_auth: True
+                          pmm_client_server_use_ssl: True
+                          pmm_client_server_basic_auth_username: ${pmm_user}
+                          pmm_client_server_basic_auth_password: ${pmm_password}
+                          pmm_client_add_services:
+                            - linux:metrics
+                            - mysql:metrics
+                            - mysql:queries
+                          pmm_client_start_services:
+                            - linux:metrics
+                            - mysql:metrics
+                            - mysql:queries
+                          pmm_client_db:
+                            mysql:
+                              host: localhost
+                              port: ${mysql_port}
+                              username: root
+                              password: root
+                      post_tasks:
+                        - name: clean up orphan agents
+                          shell: pmm-admin repair
+              - name: systemd unit for connect pmm client to server
+                copy:
+                  dest: /etc/systemd/system/metricspercona.service
+                  mode: 0550
+                  content: |
+                    [Unit]
+                    Description=Connect pmm client to server
+                    Requires=network-online.target
+                    After=network.target
+
+                    [Service]
+                    ExecStart=/usr/src/cloud/venv/bin/ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local /usr/src/cloud/metricspercona.yml
+                    TimeoutStopSec=5
+
+                    [Install]
+                    WantedBy=multi-user.target
+              - name: systemd unit timer for connect pmm client to server
+                copy:
+                  dest: /etc/systemd/system/metricspercona.timer
+                  mode: 0550
+                  content: |
+                    [Unit]
+                    Description=Run metricspercona
+
+                    [Timer]
+                    OnCalendar=*:0/5
+                    Persistent=true
+                    Unit=metricspercona.service
+
+                    [Install]
+                    WantedBy=multi-user.target
+              - name: reload systemd
+                systemd:
+                  name: metricspercona.timer
+                  daemon_reload: yes
+                  enabled: yes
+                  state: started
             when: '"${pmm_server}" != ""'
 
-    path: /usr/src/cloud/metering.yml
+    path: /usr/src/cloud/playbook.yml
     permissions: '0400'
 
 runcmd:
@@ -748,16 +807,4 @@ runcmd:
         sleep 1
       done
       export COMPLETED=false
-      # Run monitoring playbook
-      while [ "$COMPLETED" == "false" ]; do
-        (
-          cd /usr/src/cloud
-          source venv/bin/activate
-          ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local metering.yml
-        ) >> /var/log/cloud-scripts.log 2>&1
-        if [ $? == 0 ]; then
-          COMPLETED=true
-        fi
-        sleep 1
-      done
       EOF
