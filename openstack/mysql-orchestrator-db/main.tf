@@ -61,7 +61,7 @@ data "template_file" "cloud-config" {
   }
 }
 
-module "volume-mysql" {
+module "mysql-volume" {
   source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.7"
   name = "${var.name}"
   size = "${var.mysql_volume_size}"

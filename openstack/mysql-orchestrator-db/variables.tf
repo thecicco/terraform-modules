@@ -7,15 +7,15 @@ variable "name" {
 }
 
 variable "mysql_port" {
-  default = "3306"
+  default = "33306"
 }
 
 variable "mysql_master_port" {
-  default = "3307"
+  default = "3306"
 }
 
 variable "mysql_slaves_port" {
-  default = "3308"
+  default = "3307"
 }
 
 variable "mysql_datadir" {
@@ -119,7 +119,7 @@ variable "region" {
 }
 
 variable "pmm_server" {
-  default = ""
+  default = "metricspercona.service.automium.consul"
 }
 
 variable "pmm_user" {
@@ -127,7 +127,7 @@ variable "pmm_user" {
 }
 
 variable "pmm_password" {
-  default = ""
+  default = "admin"
 }
 
 variable "os_api" {

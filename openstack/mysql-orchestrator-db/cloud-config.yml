@@ -276,11 +276,6 @@ write_files:
             when: ( bootstrap == false)
           - name: restore latest mysql data release
             block:
-              - name: download restic https://github.com/restic/restic/pull/1719#pullrequestreview-119247068
-                get_url:
-                  url: https://swift.it-mil1.entercloudsuite.com/v1/KEY_d51f5387474f40c6bd2975ccf34c7ea0/resticbin/restic
-                  dest: "{{ restic_binary_path }}/restic"
-                  mode: 0540
               - name: restore data
                 shell: |
                   source /usr/local/restic/customer-data.sh
@@ -305,7 +300,7 @@ write_files:
                 user=${mysql_root_name}
                 password=${mysql_root_password}
 
-      - name: install mysql
+      - name: configure mysql
         hosts: 127.0.0.1
         pre_tasks:
           - name: stop mysql
@@ -319,12 +314,16 @@ write_files:
                 [mysqld]
                 # user options
                 ${mysql_user_options}
-                # optimizations
+                # read only options
                 read_only
                 super_read_only
+                port                              = ${mysql_port}
                 datadir                           = ${mysql_datadir}
+                max_connections                   = 60000
                 innodb_buffer_pool_size           = "{{ (ansible_memtotal_mb*0.8)|int|abs }}M"
                 server-id                         = "{{ 4294967294 | random }}"
+                innodb_flush_log_at_trx_commit    = 2
+                sync_binlog                       = 0
                 log_bin                           = mysql-bin
                 log-bin-index                     = mysql-bin.index
                 innodb_log_file_size              = 512M
@@ -337,6 +336,8 @@ write_files:
                 log-slave-updates                 = 1
                 relay_log_info_repository         = TABLE
                 master_info_repository            = TABLE
+                slave_parallel_type               = LOGICAL_CLOCK
+                slave_parallel_workers           = "{{ ansible_processor_vcpus }}"
                 # pmm options
                 log_output                        = file
                 slow_query_log                    = ON
@@ -352,6 +353,20 @@ write_files:
                 userstat                          = 1
           - name: startup mysql
             service: name=mysql state=started
+          - name: set super read only off
+            shell:
+              cmd: |
+                mysql -uroot -p${mysql_root_password} -e "set global super_read_only=false"
+          - name: upgrade mysql system tables
+            shell:
+              cmd: |
+                mysql_upgrade -s
+            register: mysql_upgrade
+            failed_when: mysql_upgrade.rc != 0 and mysql_upgrade.rc != 2
+          - name: set super read only off
+            shell:
+              cmd: |
+                mysql -uroot -p${mysql_root_password} -e "set global super_read_only=true"
         post_tasks:
           - block:
               - name: set read only off
@@ -618,20 +633,21 @@ write_files:
 
           - name: reload xinetd conf
             service: name=xinetd state=reloaded
-          - name: create consul template folder
-            file:
-              path: /opt/consul-template/templates
-              state: directory
           - name: copy haproxy conf
-            copy:
+            local_action:
+              module: copy
               content: |
                 {% raw %}
                 listen write-pool
-                    bind *:${mysql_master_port}
+                    bind *:3306
                     mode tcp
                     server {{key "mysql/master/${name}/hostname"}} {{key "mysql/master/${name}/ipv4"}}:{{key "mysql/master/${name}/port"}} check port {{key "mysql/master/${name}/port"}} init-addr last,libc,none
                 {% endraw %}
-              dest: /opt/consul-template/templates/master.ctmpl
+              dest: master.ctmpl
+          - name: stop consul
+            service: name=consul state=stopped
+          - name: clean /opt/consul/data/serf/local.keyring
+            file: path=/opt/consul/data/serf/local.keyring state=absent
         roles:
           - role: entercloudsuite.haproxy
             haproxy_user: ${mysql_admin_name}
@@ -652,14 +668,16 @@ write_files:
           - role: entercloudsuite.consul-template
             consul_template_use_systemd: true
             consul_template_consul_server: ${consul}
-            consul_template_staging_area: /opt
+            consul_template_staging_area: /var/spool
+            consul_template_wait: 0s
+            consul_template_template_files:
+              - { src: master.ctmpl }
             consul_template_templates:
               - name: master.ctmpl
                 dest: /etc/haproxy/conf.d/master.cfg
                 cmd: service haproxy reload || true
                 perms: 666
                 backup: true
-                wait: '0s'
           - role: entercloudsuite.consul
             consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
             consul_configs:
@@ -668,8 +686,8 @@ write_files:
                 client_addr: 0.0.0.0
                 node_name: "{{ ansible_hostname }}"
                 data_dir: "{{ consul_data_dir }}"
-                encrypt: "tmxPrOlbwParEJ73hDrUOA=="
-                datacenter: automium
+                encrypt: "${consul_encrypt}"
+                datacenter: "${consul_datacenter}"
                 enable_syslog: true
                 server: false
                 ui: true
@@ -679,42 +697,104 @@ write_files:
                     checks:
                       - http: "http://${mysql_admin_name}:${mysql_admin_password}@127.0.0.1:8282"
                         method: "GET"
-                        interval: "10s"
+                        interval: "2s"
+                  - name: "metricsnode"
+                  - name: "metricshaproxy"
+                  - name: "metricsmysqld"
                 rejoin_after_leave: true
                 retry_join:
                   - "${consul}"
 
-
-    path: /usr/src/cloud/playbook.yml
-    permissions: '0400'
-  - content: |
-      - name: pmm_client
+      - name: metrics percona
         hosts: 127.0.0.1
-        roles:
-          - role: entercloudsuite.pmm_client
-            pmm_client_server_host: ${pmm_server}
-            pmm_client_server_port: 443
-            pmm_client_server_basic_auth: True
-            pmm_client_server_use_ssl: True
-            pmm_client_server_basic_auth_username: ${pmm_user}
-            pmm_client_server_basic_auth_password: ${pmm_password}
-            pmm_client_add_services:
-              - linux:metrics
-              - mysql:metrics
-              - mysql:queries
-            pmm_client_start_services:
-              - linux:metrics
-              - mysql:metrics
-              - mysql:queries
-            pmm_client_db:
-              mysql:
-                host: localhost
-                port: 3306
-                username: root
-                password: root
+        tasks:
+          - block:
+              - name: deregister host to pmm
+                uri:
+                  url: http://${pmm_server}/v1/catalog/deregister?dc=dc1
+                  method: PUT
+                  status_code: 200
+                  body_format: json
+                  user: ${pmm_user}
+                  password: ${pmm_password}
+                  force_basic_auth: yes
+                  body: '{"Datacenter":"dc1","Node":"${hostname}"}'
+                register: deregister_pmm
+                until: deregister_pmm.failed == false
+                delay: 1
+                retries: 6000
+              - name: systemd unit for connect pmm client to server
+                copy:
+                  dest: /usr/src/cloud/metricspercona.yml
+                  mode: 0550
+                  content: |
+                    - name: pmm_client
+                      hosts: 127.0.0.1
+                      roles:
+                        - role: entercloudsuite.pmm_client
+                          pmm_client_server_host: ${pmm_server}
+                          pmm_client_server_port: 443
+                          pmm_client_server_basic_auth: True
+                          pmm_client_server_use_ssl: True
+                          pmm_client_server_basic_auth_username: ${pmm_user}
+                          pmm_client_server_basic_auth_password: ${pmm_password}
+                          pmm_client_add_services:
+                            - linux:metrics
+                            - mysql:metrics
+                            - mysql:queries
+                          pmm_client_start_services:
+                            - linux:metrics
+                            - mysql:metrics
+                            - mysql:queries
+                          pmm_client_db:
+                            mysql:
+                              host: localhost
+                              port: ${mysql_port}
+                              username: root
+                              password: root
+                      post_tasks:
+                        - name: clean up orphan agents
+                          shell: pmm-admin repair
+              - name: systemd unit for connect pmm client to server
+                copy:
+                  dest: /etc/systemd/system/metricspercona.service
+                  mode: 0550
+                  content: |
+                    [Unit]
+                    Description=Connect pmm client to server
+                    Requires=network-online.target
+                    After=network.target
+
+                    [Service]
+                    ExecStart=/usr/src/cloud/venv/bin/ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local /usr/src/cloud/metricspercona.yml
+                    TimeoutStopSec=5
+
+                    [Install]
+                    WantedBy=multi-user.target
+              - name: systemd unit timer for connect pmm client to server
+                copy:
+                  dest: /etc/systemd/system/metricspercona.timer
+                  mode: 0550
+                  content: |
+                    [Unit]
+                    Description=Run metricspercona
+
+                    [Timer]
+                    OnCalendar=*:0/5
+                    Persistent=true
+                    Unit=metricspercona.service
+
+                    [Install]
+                    WantedBy=multi-user.target
+              - name: reload systemd
+                systemd:
+                  name: metricspercona.timer
+                  daemon_reload: yes
+                  enabled: yes
+                  state: started
             when: '"${pmm_server}" != ""'
 
-    path: /usr/src/cloud/metering.yml
+    path: /usr/src/cloud/playbook.yml
     permissions: '0400'
 
 runcmd:
@@ -734,16 +814,4 @@ runcmd:
         sleep 1
       done
       export COMPLETED=false
-      # Run monitoring playbook
-      while [ "$COMPLETED" == "false" ]; do
-        (
-          cd /usr/src/cloud
-          source venv/bin/activate
-          ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local metering.yml
-        ) >> /var/log/cloud-scripts.log 2>&1
-        if [ $? == 0 ]; then
-          COMPLETED=true
-        fi
-        sleep 1
-      done
       EOF
