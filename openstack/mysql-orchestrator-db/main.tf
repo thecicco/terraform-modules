@@ -1,5 +1,5 @@
 module "mysql" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/instance?ref=2.7"
   name = "${var.name}"
   image = "${var.image}"
   quantity = "${var.quantity}"
@@ -62,7 +62,7 @@ data "template_file" "cloud-config" {
 }
 
 module "mysql-volume" {
-  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/volume?ref=2.7"
   name = "${var.name}"
   size = "${var.mysql_volume_size}"
   instance = "${module.mysql.instance}"

@@ -2,7 +2,7 @@
 
 ```
 module "http" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.7"
   name = "http"
   region = "it-mil1"
   protocol = "http"
@@ -11,7 +11,7 @@ module "http" {
 
 
 module "wp-site" {
-  source = "github.com/entercloudsuite/terraform-modules//wordpress"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/wordpress?ref=2.7"
   name = "wp-vm"
   network_name = "default"
   sec_group = ["${module.http.sg_id}"]

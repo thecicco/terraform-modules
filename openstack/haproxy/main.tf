@@ -1,5 +1,5 @@
 module "haproxy" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/instance?ref=2.7"
   name = "${var.name}"
   quantity = "${var.quantity}"
   external = "${var.external}"

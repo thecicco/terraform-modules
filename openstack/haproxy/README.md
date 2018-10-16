@@ -5,7 +5,7 @@ Simple example
 ```
 
 module "sg-haproxy-http" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.6"
   name = "haproxy-http"
   region = "${var.region}"
   protocol = "tcp"
@@ -14,7 +14,7 @@ module "sg-haproxy-http" {
   allow_remote = "0.0.0.0/0"
 }
 module "sg-haproxy-https" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.6"
   name = "haproxy-https"
   region = "${var.region}"
   protocol = "tcp"
@@ -24,7 +24,7 @@ module "sg-haproxy-https" {
 }
 
 module "sg-haproxy-stats" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.6"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.6"
   name = "haproxy-stats"
   region = "${var.region}"
   protocol = "tcp"
@@ -44,7 +44,7 @@ data "openstack_networking_subnet_v2" "subnet" {
 }
 
 module "haproxy-internal" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.7"
   name = "haproxy-internal"
   region = "${var.region}"
   protocol = ""
@@ -52,7 +52,7 @@ module "haproxy-internal" {
 }
 
 module "haproxy" {
-  source = "github.com/AttilioGreco/terraform-modules//haproxy?ref=2.7.1"
+  source = "github.com/AttilioGreco/terraform-modules//openstack/haproxy?ref=2.7"
   name = "haproxy"
   quantity = 2
   region = "${var.region}"

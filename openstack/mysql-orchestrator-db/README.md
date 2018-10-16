@@ -11,7 +11,7 @@ This module is meant to be used with orchestrator module together
 
 ```
 module "orchestrator" {
-  source = "github.com/entercloudsuite/terraform-modules//orchestrator?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/orchestrator?ref=2.7"
   external = "true"
   name = "orchestrator"
   network_name = "${var.network_name}"
@@ -27,7 +27,7 @@ module "orchestrator" {
 }
 
 module "mysql-orchestrator" {
-  source = "github.com/entercloudsuite/terraform-modules//mysql-orchestrator-db?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/mysql-orchestrator-db?ref=2.7"
   quantity = 4
   network_name = "${var.network_name}"
   keypair = "${var.keypair_name}"

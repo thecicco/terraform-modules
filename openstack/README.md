@@ -42,7 +42,7 @@ provider "openstack" {
 
 # Create network
 module "network" {
-  source = "github.com/entercloudsuite/terraform-modules//network?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/network?ref=2.7"
   region = "${var.region}"
   name = "general_network"
   router_id = ""
@@ -50,14 +50,14 @@ module "network" {
 
 # Create ssh keypair
 module "keypair" {
-  source = "github.com/entercloudsuite/terraform-modules//keypair?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/keypair?ref=2.7"
   ssh_pubkey = "${var.ssh_pubkey}"
   region = "${var.region}"
 }
 
 # Create ssh firewall policy
 module "ssh" {
-  source = "github.com/entercloudsuite/terraform-modules//security?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.7"
   name = "ssh"
   region = "${var.region}"
   protocol = "tcp"
@@ -68,7 +68,7 @@ module "ssh" {
 
 # Create instance
 module "web" {
-  source = "github.com/entercloudsuite/terraform-modules//instance?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/instance?ref=2.7"
   name = "web"
   quantity = 1
   external = "true"
@@ -102,7 +102,7 @@ module "web" {
 ```
 # Create volume for each web instance
 module "volume-web" {
-  source = "github.com/entercloudsuite/terraform-modules//volume?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/volume?ref=2.7"
   name = "volume-web"
   size = "10"
   instance = "${module.web.instance}"
@@ -144,7 +144,7 @@ Expose vip with a floating ip
 
 ```
 module "external_vip_web" {
-  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/external_vip?ref=2.7"
   external_vips = ["10.2.255.1","10.2.255.2"]
   network_name = "${var.network_name}"
 }

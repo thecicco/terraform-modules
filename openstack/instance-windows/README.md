@@ -40,7 +40,7 @@ provider "openstack" {
 }
 
 module "windows" {
-  source = "github.com/entercloudsuite/terraform-module//instance-windows?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-module//openstack/instance-windows?ref=2.7"
   name = "windows"
   quantity = 1
   external = "true"
