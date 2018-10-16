@@ -6,6 +6,11 @@ write_files:
         hosts: 127.0.0.1
         vars:
           orchestrator_http_auth_basic: '${orchestrator_http_auth_user}:${orchestrator_http_auth_password}'
+        pre_tasks:
+           - name: stop consul
+             service: name=consul state=stopped
+           - name: clean /opt/consul/data/serf/local.keyring
+             file: path=/opt/consul/data/serf/local.keyring state=absent
         roles:
           - role: entercloudsuite.orchestrator
             orchestrator_mysql_user: orchestrator

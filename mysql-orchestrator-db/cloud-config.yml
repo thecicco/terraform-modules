@@ -644,6 +644,10 @@ write_files:
                     server {{key "mysql/master/${name}/hostname"}} {{key "mysql/master/${name}/ipv4"}}:{{key "mysql/master/${name}/port"}} check port {{key "mysql/master/${name}/port"}} init-addr last,libc,none
                 {% endraw %}
               dest: master.ctmpl
+          - name: stop consul
+            service: name=consul state=stopped
+          - name: clean /opt/consul/data/serf/local.keyring
+            file: path=/opt/consul/data/serf/local.keyring state=absent
         roles:
           - role: entercloudsuite.haproxy
             haproxy_user: ${mysql_admin_name}
@@ -682,8 +686,8 @@ write_files:
                 client_addr: 0.0.0.0
                 node_name: "{{ ansible_hostname }}"
                 data_dir: "{{ consul_data_dir }}"
-                encrypt: "tmxPrOlbwParEJ73hDrUOA=="
-                datacenter: automium
+                encrypt: "${consul_encrypt}"
+                datacenter: "${consul_datacenter}"
                 enable_syslog: true
                 server: false
                 ui: true
