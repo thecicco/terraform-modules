@@ -664,7 +664,7 @@ write_files:
           - role: entercloudsuite.consul-template
             consul_template_use_systemd: true
             consul_template_consul_server: ${consul}
-            consul_template_staging_area: /opt
+            consul_template_staging_area: /var/spool
             consul_template_wait: 0s
             consul_template_template_files:
               - { src: master.ctmpl }
