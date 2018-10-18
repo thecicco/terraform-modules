@@ -91,7 +91,12 @@ write_files:
                 retry_join:
                   - "${consul}"
             when: ("${consul}" != "")
-
+        post_tasks:
+          - name: force update master every minute
+            cron:
+              name: "force update master every minute"
+              minute: "*/1"
+              job: "curl -sS http://${orchestrator_user}:${orchestrator_password}@${name}.service.${consul_datacenter}.consul/api/submit-masters-to-kv-stores > /dev/null"
 
       - name: get orchestrator leader
         hosts: 127.0.0.1
