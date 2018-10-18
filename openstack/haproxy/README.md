@@ -52,7 +52,7 @@ module "haproxy-internal" {
 }
 
 module "haproxy" {
-  source = "github.com/AttilioGreco/terraform-modules//openstack/haproxy?ref=2.7"
+  source = "github.com/entercloudsuite/terraform-modules//openstack/haproxy?ref=2.7"
   name = "haproxy"
   quantity = 2
   region = "${var.region}"

@@ -25,7 +25,7 @@ variable "network_name" {
 }
 
 variable "image" {
-  default = "ecs-haproxy 1.1.4"
+  default = "ecs-haproxy 1.1.5"
 }
 
 variable "discovery" {
@@ -99,4 +99,18 @@ variable "haproxy_stats" {
   EOF
 }
 variable "haproxy_conf" {
+}
+
+variable "consul" {
+  default = ""
+}
+
+variable "consul_port" {
+  default = "8500"
+}
+
+variable "consul_datacenter" {
+}
+
+variable "consul_encrypt" {
 }

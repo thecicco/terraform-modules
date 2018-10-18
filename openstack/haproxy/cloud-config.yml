@@ -2,14 +2,44 @@
 
 write_files:
   - content: |
-      - name: install orchestrator
+      - name: install haproxy
         hosts: 127.0.0.1
+        pre_tasks:
+           - name: stop consul
+             service: name=consul state=stopped
+           - name: clean /opt/consul/data/serf/local.keyring
+             file: path=/opt/consul/data/serf/local.keyring state=absent
         roles:
           - role: entercloudsuite.haproxy
             haproxy_user: ${haproxy_user}
             haproxy_pass: ${haproxy_pass}
             haproxy_conf: |
               ${haproxy_conf}
+          - role: entercloudsuite.consul
+            consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
+            consul_configs:
+              main:
+                bind_addr: 0.0.0.0
+                client_addr: 0.0.0.0
+                node_name: "{{ ansible_hostname }}"
+                data_dir: "{{ consul_data_dir }}"
+                encrypt: "${consul_encrypt}"
+                datacenter: "${consul_datacenter}"
+                enable_syslog: true
+                server: false
+                ui: true
+                enable_script_checks: true
+                services:
+                  - name: "${name}"
+                    checks:
+                      - http: "http://${haproxy_user}:${haproxy_pass}@127.0.0.1:8282"
+                        method: "GET"
+                        interval: "2s"
+                  - name: "metricsnode"
+                  - name: "metricshaproxy"
+                rejoin_after_leave: true
+                retry_join:
+                  - "${consul}"
     path: /tmp/cloud/playbook.yml
     permissions: '0400'
 
@@ -52,18 +82,8 @@ runcmd:
           set -o pipefail
           # workaround https://github.com/ansible/ansible/issues/21562
           export HOME=/root
-          cd /tmp/cloud
-          rm -rf bin local share roles include lib || true
-          dpkg-query -l libffi-dev || ( apt update -y && apt install libffi-dev -y )
-          dpkg-query -l libssl-dev || ( apt update -y && apt install libssl-dev -y )
-          test -e /usr/bin/python || ( apt update -y && apt install python-minimal -y )
-          test -e /usr/bin/pip || ( apt update -y && apt install python-pip -y )
-          test -e /usr/bin/virtualenv || ( apt update -y && apt install virtualenv -y )
-          virtualenv .
-          source bin/activate
-          pip install -r requirements.txt
-          mkdir roles || true
-          ansible-galaxy install -f -p roles -r requirements.yml
+          cd /usr/src/cloud
+          source venv/bin/activate
           ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local playbook.yml
         ) >> /var/log/cloud-scripts.log 2>&1
         if [ $? == 0 ]; then
