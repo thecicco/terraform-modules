@@ -235,9 +235,16 @@ write_files:
             copy:
               content: |
                 #!/bin/bash
-
-                echo all fine, stop pt-kill
-                kill $(cat /tmp/killqueries)
+                KILL=$(kill $(cat /tmp/killqueries) 2>&1)
+                RCKILL=$?
+                echo $KILL | grep "No such process" > /dev/null 2>&1
+                NOPROCESS=$?
+                if [ "$RC" != "0" ] && [ "$NOPROCESS" == "0" ]; then
+                    echo pt-kill terminated before kill
+                    exit 0
+                fi
+                echo $KILL
+                exit $RCKILL
               dest: /usr/share/mylvmbackup/predisconnect
               mode: 0755
         roles:
@@ -262,6 +269,10 @@ write_files:
             os_user: "${os_user}"
             os_password: "${os_password}"
             restic_setup_repository: false
+            restic_functions:
+              - backup
+              - forget
+              - prune
             restic_backup_script: |
               master=$(curl -s ${consul}:${consul_port}/v1/kv/mysql/master/${name}/hostname -s | jq '.[].Value' | sed 's/"//g' | base64 -d )
               if [ "$master" = "${hostname}.node.${consul_datacenter}.consul" ] || [ "$1" = "force" ]; then
@@ -294,7 +305,7 @@ write_files:
               EOF
                   chmod +x /usr/share/mylvmbackup/preunlock
 
-                  mylvmbackup --user=root --password=root --mycnf=/etc/mysql/my.cnf --vgname=mysqlorchestrator --lvname=instance1 --innodb_recover --thin --xfs --backuptype=none --recoveryopts '--skip-networking --bootstrap --skip-grant-tables --skip-syslog --skip-slave-start' --keep_snapshot --keep_mount
+                  mylvmbackup --user=backup --password=backup --mycnf=/etc/mysql/my.cnf --vgname=mysqlorchestrator --lvname=instance1 --innodb_recover --thin --xfs --backuptype=none --recoveryopts '--skip-networking --bootstrap --skip-grant-tables --skip-syslog --skip-slave-start' --keep_snapshot --keep_mount
               else
                   exit 0
               fi
