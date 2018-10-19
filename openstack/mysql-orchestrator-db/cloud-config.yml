@@ -224,7 +224,7 @@ write_files:
 
                     echo flush table is taking too long
                     echo kill all queries except FLUSH TABLES WITH READ LOCK
-                    pt-kill --busy-time $${TIMEELAPSED} --kill --print --run-time 1 --interval 0 --ignore-info "^FLUSH TABLES WITH READ LOCK" --match-all --victim all
+                    pt-kill --busy-time $${TIMEELAPSED} --kill --print --run-time 1 --interval 0 --ignore-user '^(replica|backup)$' --match-all --victim all
                 }
 
                 killqueries &
@@ -453,6 +453,12 @@ write_files:
                   host: '%'
                   password: ${mysql_admin_password}
                   priv: '*.*:ALL,GRANT'
+              - name: create mysql backup user
+                mysql_user:
+                  name: backup
+                  host: 'localhost'
+                  password: backup
+                  priv: '*.*:ALL'
               - name: create mysql user ${mysql_replica_user_name}
                 mysql_user:
                   name: ${mysql_replica_user_name}
