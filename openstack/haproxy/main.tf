@@ -28,6 +28,7 @@ data "template_file" "cloud-config" {
     haproxy_defaults = "${var.haproxy_defaults}"
     haproxy_stats = "${var.haproxy_stats}"
     haproxy_conf = "${indent(15,var.haproxy_conf)}"
+    haproxy_cert = "${indent(15,var.haproxy_cert)}"
     consul = "${var.consul}"
     consul_port = "${var.consul_port}"
     consul_datacenter = "${var.consul_datacenter}"

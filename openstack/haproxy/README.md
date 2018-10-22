@@ -59,7 +59,7 @@ module "haproxy" {
   external = "true"
   network_name = "${var.network_name}"
   sec_group = ["${module.haproxy-internal.sg_id}","${module.sg-haproxy-http.sg_id}","${module.sg-haproxy-https.sg_id}","${module.sg-haproxy-stats.sg_id}"]
-  keypair = "${var.keyname}"
+  keypair = "${var.keypair_name}"
   haproxy_user = "myusername"
   haproxy_pass = "myV3ryS3cr37Pass0rd"
   haproxy_conf = <<EOF

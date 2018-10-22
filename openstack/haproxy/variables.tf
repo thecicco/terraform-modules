@@ -114,3 +114,5 @@ variable "consul_datacenter" {
 
 variable "consul_encrypt" {
 }
+variable "haproxy_cert" {
+}
