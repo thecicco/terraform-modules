@@ -105,6 +105,10 @@ variable "haproxy_stats" {
 variable "haproxy_conf" {
 }
 
+variable "haproxy_cert" {
+  default = "{}"
+}
+
 variable "consul" {
   default = ""
 }
@@ -117,7 +121,4 @@ variable "consul_datacenter" {
 }
 
 variable "consul_encrypt" {
-}
-
-variable "haproxy_cert" {
 }
