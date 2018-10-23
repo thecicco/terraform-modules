@@ -74,6 +74,42 @@ module "haproxy" {
 }
 
 ```
+
+with certificate
+
+```
+module "haproxy" {
+  source = "github.com/entercloudsuite/terraform-modules//openstack/haproxy?ref=2.7"
+  name = "haproxy"
+  quantity = 2
+  region = "${var.region}"
+  external = "true"
+  network_name = "${var.network_name}"
+  sec_group = ["${module.haproxy-internal.sg_id}","${module.sg-haproxy-http.sg_id}","${module.sg-haproxy-https.sg_id}","${module.sg-haproxy-stats.sg_id}"]
+  keypair = "${var.keypair_name}"
+  haproxy_user = "myusername"
+  haproxy_pass = "myV3ryS3cr37Pass0rd"
+  haproxy_conf = <<EOF
+  listen web
+  bind *:443 ssl crt example.com
+  option http-server-close
+  option forwardfor
+  default-server port 8081
+     server web-0 10.2.0.23:8081 check
+     server web-1 10.2.0.22:8081 check
+  EOF
+  haproxy_cert = <<EOF
+  example.com: |
+    -----BEGIN PRIVATE KEY-----
+    -----END PRIVATE KEY-----
+    -----BEGIN CERTIFICATE-----
+    -----END CERTIFICATE-----
+    -----BEGIN CERTIFICATE-----
+    -----END CERTIFICATE-----
+  EOF
+}
+```
+
 ## Variables Description
 | name | default |  Description |
 | --- | --- | --- |

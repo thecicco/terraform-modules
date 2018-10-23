@@ -35,6 +35,7 @@ variable "discovery" {
 variable "region" {
   default = "it-mil1"
 }
+
 variable "haproxy_user" {
 }
 
@@ -65,6 +66,7 @@ variable "haproxy_global" {
       EOF
   
 }
+
 variable "haproxy_defaults" {
   default = <<EOF
     defaults
@@ -83,6 +85,7 @@ variable "haproxy_defaults" {
       errorfile 504 /etc/haproxy/errors/504.http
       EOF
 }
+
 variable "haproxy_stats" {
   default = <<EOF
     listen stats
@@ -98,6 +101,7 @@ variable "haproxy_stats" {
       stats admin if TRUE
   EOF
 }
+
 variable "haproxy_conf" {
 }
 
@@ -114,5 +118,6 @@ variable "consul_datacenter" {
 
 variable "consul_encrypt" {
 }
+
 variable "haproxy_cert" {
 }

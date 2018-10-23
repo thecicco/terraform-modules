@@ -10,7 +10,7 @@ write_files:
            - name: clean /opt/consul/data/serf/local.keyring
              file: path=/opt/consul/data/serf/local.keyring state=absent
         roles:
-          - role: entercloudsuite.haproxy
+          - role: ansible-haproxy
             haproxy_user: ${haproxy_user}
             haproxy_pass: ${haproxy_pass}
             haproxy_conf: |
