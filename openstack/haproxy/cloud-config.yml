@@ -15,7 +15,7 @@ write_files:
             haproxy_pass: ${haproxy_pass}
             haproxy_conf: |
               ${haproxy_conf}
-            haproxy_cert: |
+            haproxy_cert:
               ${haproxy_cert}
           - role: entercloudsuite.consul
             consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"

@@ -63,14 +63,14 @@ module "haproxy" {
   haproxy_user = "myusername"
   haproxy_pass = "myV3ryS3cr37Pass0rd"
   haproxy_conf = <<EOF
-  listen web
-  bind *:80
-  option http-server-close
-  option forwardfor
-  default-server port 8081
-     server web-0 10.2.0.23:8081 check
-     server web-1 10.2.0.22:8081 check
-  EOF
+listen web
+bind *:80
+option http-server-close
+option forwardfor
+default-server port 8081
+    server web-0 10.2.0.23:8081 check
+    server web-1 10.2.0.22:8081 check
+EOF
 }
 
 ```
@@ -90,23 +90,23 @@ module "haproxy" {
   haproxy_user = "myusername"
   haproxy_pass = "myV3ryS3cr37Pass0rd"
   haproxy_conf = <<EOF
-  listen web
-  bind *:443 ssl crt example.com
-  option http-server-close
-  option forwardfor
-  default-server port 8081
-     server web-0 10.2.0.23:8081 check
-     server web-1 10.2.0.22:8081 check
-  EOF
+listen web
+bind *:443 ssl crt example.com
+option http-server-close
+option forwardfor
+default-server port 8081
+    server web-0 10.2.0.23:8081 check
+    server web-1 10.2.0.22:8081 check
+EOF
   haproxy_cert = <<EOF
-  example.com: |
-    -----BEGIN PRIVATE KEY-----
-    -----END PRIVATE KEY-----
-    -----BEGIN CERTIFICATE-----
-    -----END CERTIFICATE-----
-    -----BEGIN CERTIFICATE-----
-    -----END CERTIFICATE-----
-  EOF
+example.com: |
+  -----BEGIN PRIVATE KEY-----
+  -----END PRIVATE KEY-----
+  -----BEGIN CERTIFICATE-----
+  -----END CERTIFICATE-----
+  -----BEGIN CERTIFICATE-----
+  -----END CERTIFICATE-----
+EOF
 }
 ```
 
