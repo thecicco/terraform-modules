@@ -81,7 +81,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   user_data = "${element(var.userdata,count.index)}"
 }
 
-resource "consul_catalog_entry" "service" {
+resource "consul_catalog_entry" "service_local" {
   count = "${var.discovery ? var.quantity : 0}"
   address = "${openstack_compute_instance_v2.cluster.*.access_ip_v4[count.index]}"
   node    = "${var.name}-${count.index}"
@@ -90,6 +90,20 @@ resource "consul_catalog_entry" "service" {
     address = "${openstack_compute_instance_v2.cluster.*.access_ip_v4[count.index]}"
     id      = "${var.name}-${count.index}"
     name    = "${var.name}"
+    port    = "${var.discovery_port}"
+    tags    = ["${count.index}"]
+  }
+}
+
+resource "consul_catalog_entry" "service_external" {
+  count = "${(var.discovery) && (var.external) ? var.quantity : 0}"
+  address = "${openstack_networking_floatingip_v2.ips.*.address[count.index]}"
+  node    = "external${var.name}-${count.index}"
+
+  service = {
+    address = "${openstack_networking_floatingip_v2.ips.*.address[count.index]}"
+    id      = "external${var.name}-${count.index}"
+    name    = "external${var.name}"
     port    = "${var.discovery_port}"
     tags    = ["${count.index}"]
   }

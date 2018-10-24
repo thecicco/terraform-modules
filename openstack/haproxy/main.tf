@@ -15,6 +15,7 @@ module "haproxy" {
     "server_group" = "${var.name}"
   }
 }
+
 data "template_file" "cloud-config" {
   template = "${file("${path.module}/cloud-config.yml")}"
   count = "${var.quantity}"
