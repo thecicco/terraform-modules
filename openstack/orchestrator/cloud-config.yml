@@ -85,8 +85,11 @@ write_files:
                         method: "GET"
                         interval: "2s"
                   - name: "metricsnode"
+                    port: 9100
                   - name: "metricshaproxy"
+                    port: 9101
                   - name: "metricsmysqld"
+                    port: 9104
                 rejoin_after_leave: true
                 retry_join:
                   - "${consul}"

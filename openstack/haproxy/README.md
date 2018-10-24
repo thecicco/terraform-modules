@@ -120,7 +120,7 @@ EOF
 | flavor | "e3standard.x2" | Instance flavor |
 | external | flase | associate floating IP to VM |
 | network_name | none | VM network |
-| image | ecs-haproxy 1.1.4 | Whitch image deploy |
+| image | ecs-haproxy 1.1.6 | Whitch image deploy |
 | discovery | true | register this VM in consul |
 | region | it-mil1 | OS region |
 | haproxy_user | None | HAproxy Stats UserName |
