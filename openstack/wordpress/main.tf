@@ -2,7 +2,7 @@
 module "wordpress" {
   source = "github.com/entercloudsuite/terraform-modules//openstack/instance?ref=2.7"
   name = "${var.name}"
-  image = "ecs-docker 1.0.0"
+  image = "ecs-docker 1.0.1"
   quantity = "${var.quantity}"
   flavor = "${var.flavor}"
   network_name = "${var.network_name}"
@@ -20,7 +20,12 @@ module "wordpress" {
 data "template_file" "cloud-config" {
   template = "${file("${path.module}/cloud-config.yml")}"
   vars {
+    name = "${var.name}"
     db_password = "${var.db_password}"
     db_host = "${var.db_host}"
+    consul = "${var.consul}"
+    consul_port = "${var.consul_port}"
+    consul_datacenter = "${var.consul_datacenter}"
+    consul_encrypt = "${var.consul_encrypt}"
   }
 }

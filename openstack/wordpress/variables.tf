@@ -7,6 +7,20 @@ variable "db_host" {
 variable "name" {
 }
 
+variable "consul" {
+  default = ""
+}
+
+variable "consul_port" {
+  default = "8500"
+}
+
+variable "consul_datacenter" {
+}
+
+variable "consul_encrypt" {
+}
+
 variable "sec_group" {
   type = "list"
 }

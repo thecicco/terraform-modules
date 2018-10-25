@@ -4,20 +4,21 @@
 module "http" {
   source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.7"
   name = "http"
-  region = "it-mil1"
+  region = "${var.region}"
   protocol = "http"
   allow_remote = "0.0.0.0/0"
 }
 
-
-module "wp-site" {
+module "wordpress" {
   source = "github.com/entercloudsuite/terraform-modules//openstack/wordpress?ref=2.7"
-  name = "wp-vm"
-  network_name = "default"
+  name = "wordpress"
+  network_name = "${var.network_name}"
   sec_group = ["${module.http.sg_id}"]
-  keypair = "my_key"
+  keypair = "${var.keypair_name}"
+  db_host = "db"
   db_password = "yourverylongpasswordhere"
+  consul = "consul.service.automium.consul"
+  consul_datacenter = "automium"
+  consul_encrypt = "supersecretconsul"
 }
 ```
-
-
