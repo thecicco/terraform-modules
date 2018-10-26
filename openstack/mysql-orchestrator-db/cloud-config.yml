@@ -812,7 +812,8 @@ write_files:
                 register: deregister_pmm
                 until: deregister_pmm.failed == false
                 delay: 1
-                retries: 6000
+                retries: 3
+                ignore_errors: True
               - name: systemd unit for connect pmm client to server
                 copy:
                   dest: /usr/src/cloud/metricspercona.yml
