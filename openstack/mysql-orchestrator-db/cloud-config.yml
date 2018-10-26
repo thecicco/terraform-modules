@@ -785,11 +785,11 @@ write_files:
                       - http: "http://${mysql_admin_name}:${mysql_admin_password}@127.0.0.1:8282"
                         method: "GET"
                         interval: "2s"
-                  - name: "metricsnode"
+                  - name: "exporter_node"
                     port: 9100
-                  - name: "metricshaproxy"
+                  - name: "exporter_haproxy"
                     port: 9101
-                  - name: "metricsmysqld"
+                  - name: "exporter_mysqld"
                     port: 9104
                 rejoin_after_leave: true
                 retry_join:

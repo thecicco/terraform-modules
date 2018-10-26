@@ -37,9 +37,9 @@ write_files:
                       - http: "http://${haproxy_user}:${haproxy_pass}@127.0.0.1:8282"
                         method: "GET"
                         interval: "2s"
-                  - name: "metricsnode"
+                  - name: "exporter_node"
                     port: 9100
-                  - name: "metricshaproxy"
+                  - name: "exporter_haproxy"
                     port: 9101
                 rejoin_after_leave: true
                 retry_join:
