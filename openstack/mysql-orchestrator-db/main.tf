@@ -69,3 +69,15 @@ module "mysql-volume" {
   quantity = "${module.mysql.quantity}"
   volume_type = "${var.mysql_volume_type}"
 }
+
+resource "consul_keys" "bootstrap" {
+  count = "${var.quantity > 0 ? 1 : 0}"
+  key {
+    path  = "mysql/master/${var.name}/custom_bootstrap"
+    value = "used for bootstrap ${var.name} cluster"
+    delete = true
+  }
+  lifecycle {
+    ignore_changes = ["key"]
+  }
+}
