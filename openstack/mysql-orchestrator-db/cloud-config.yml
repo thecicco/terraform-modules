@@ -555,6 +555,7 @@ write_files:
                   {{ restic_binary_path }}/restic init
                 args:
                   executable: /bin/bash
+                ignore_errors: yes
               - name: create first backup
                 shell: /bin/bash -x /usr/local/restic/files_backup.sh force &> /var/log/cloud-firstbackup.log
                 args:
