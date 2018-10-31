@@ -5,6 +5,8 @@ write_files:
       - name: haproxy
         hosts: 127.0.0.1
         pre_tasks:
+          - name: stop mysql
+            service: name=mysql state=stopped
           - name: install xinetd
             package: name=xinetd
           - name: add xinetd check
