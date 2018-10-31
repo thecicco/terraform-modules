@@ -114,7 +114,8 @@ write_files:
                   status_code: 200
                   body_format: json
                 register: orchestrator_api_leader_elected
-                until: orchestrator_api_leader_elected.json == "Leader"
+                until: ( orchestrator_api_leader_elected.failed == false ) and
+                  ( orchestrator_api_leader_elected.json == "Leader" )
                 delay: 1
                 retries: 6000
               - name: get leader node
