@@ -4,23 +4,22 @@
 module "http" {
   source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.7"
   name = "http"
-  region = "${var.region}"
+  region = "it-mil1"
   protocol = "http"
   allow_remote = "0.0.0.0/0"
 }
 
-module "wordpress" {
-  source = "github.com/entercloudsuite/terraform-modules//openstack/wordpress?ref=2.7"
-  name = "wordpress"
-  network_name = "${var.network_name}"
+
+module "elasticsearch-kibana-logs" {
+  source = "github.com/entercloudsuite/terraform-modules//openstack/elasticsearch-kibana?ref=2.7"
+  name = "es-logs"
+  network_name = "default"
   sec_group = ["${module.http.sg_id}"]
-  keypair = "${var.keypair_name}"
-  db_user = "db_user"
-  db_host = "127.0.0.1"
-  es_host = "127.0.0.1:9200"
-  db_password = "yourverylongpasswordhere"
+  keypair = "my_key"
   consul = "consul.service.automium.consul"
   consul_datacenter = "automium"
   consul_encrypt = "supersecretconsul"
 }
 ```
+
+

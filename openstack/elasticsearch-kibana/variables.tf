@@ -1,31 +1,4 @@
-variable "db_user" {
-}
-
-variable "db_password" {
-}
-
-variable "es_host" {
-  default = "127.1.1.1"
-}
-
-variable "db_host" {
-}
-
 variable "name" {
-}
-
-variable "consul" {
-  default = ""
-}
-
-variable "consul_port" {
-  default = "8500"
-}
-
-variable "consul_datacenter" {
-}
-
-variable "consul_encrypt" {
 }
 
 variable "sec_group" {
@@ -36,7 +9,7 @@ variable "keypair" {
 }
 
 variable "flavor" {
-  default = "e3standard.x3"
+  default = "e3standard.x4"
 }
 
 variable "network_name" {
@@ -56,4 +29,18 @@ variable "external" {
 
 variable "region" {
   default = "it-mil1"
+}
+
+variable "consul" {
+  default = ""
+}
+
+variable "consul_port" {
+  default = "8500"
+}
+
+variable "consul_datacenter" {
+}
+
+variable "consul_encrypt" {
 }

@@ -1,0 +1,126 @@
+#cloud-config
+write_files:
+  - content: |
+      - name: run the main role
+        hosts: 127.0.0.1
+        pre_tasks:
+          - name: stop consul
+            service: name=consul state=stopped
+          - name: clean /opt/consul/data/serf/local.keyring
+            file: path=/opt/consul/data/serf/local.keyring state=absent
+        post_tasks:
+          - name: Create filebeat index pattern
+            uri:
+              url: http://127.1:5601/api/saved_objects/index-pattern
+              method: POST
+              headers:
+               Referer: "http://127.1:5601/app/kibana"
+               kbn-version: "6.4.3"
+               origin: "http://127.1:5601"
+               DNT: "1"    
+              body: '{"attributes":{"title":"filebeat-*","timeFieldName":"@timestamp"}}'
+              body_format: json
+          - name: Enable docker on metricbeat
+            copy: remote_src=True src=/etc/metricbeat/modules.d/docker.yml.disabled dest=/etc/metricbeat/modules.d/docker.yml
+          - name: Restart service metricbeat
+            service:
+             name: metricbeat
+             state: restarted
+          - shell: metricbeat setup --dashboards 
+          - shell: auditbeat setup --dashboards 
+          - name: Create retention script
+            copy:
+              dest: "/root/rotate_elasticsearch.sh"
+              content: |
+                 TODAY=`date +%Y.%m.%d`
+                 URL="http://127.0.0.1:9200"
+
+                 close_week_old_indices()
+                 {
+                   WEEK_FROM_TODAY=`date +%Y.%m.%d -d -7days`
+                   INDEX=*beat*-$WEEK_FROM_TODAY
+                   curl -XPOST $URL/$INDEX/_close
+                 }
+                 
+                 delete_7day_old_indices()
+                 {
+                   DAYS7_FROM_TODAY=`date +%Y.%m.%d -d -7days`
+                   INDEX=*beat*-$DAYS7_FROM_TODAY
+                   curl -XDELETE $URL/$INDEX
+                 }
+
+                 # main()
+                 close_week_old_indices
+                 delete_7day_old_indices
+          - shell: chmod +x /root/rotate_elasticsearch.sh && echo "15 2   * * *  root  bash /root/rotate_elasticsearch.sh" >> /etc/crontab
+        roles:
+          - role: entercloudsuite.elasticsearch
+            es_enable_xpack: true
+            es_xpack_features: ["monitoring"]
+            es_heap_size: 2g
+            es_instance_name: "node1"
+            es_config:
+              network.host: "0.0.0.0"
+          - role: entercloudsuite.kibana
+            kibana_package: kibana=6.4.3
+            kibana_server_port: 5601
+            kibana_server_host: "0.0.0.0"
+          - role: entercloudsuite.prometheus-exporter
+            prometheus_exporter_name: node_exporter
+            prometheus_exporter_version: 0.16.0
+          - role: entercloudsuite.beats
+            products:
+              - metricbeat
+          - role: entercloudsuite.auditbeat
+          - role: entercloudsuite.consul
+            consul_config_validate: "{{ consul_user_home }}/bin/consul validate -config-format=json %s"
+            consul_configs:
+              main:
+                bind_addr: "{{ ansible_default_ipv4.address }}"
+                client_addr: "0.0.0.0"
+                node_name: "{{ ansible_hostname }}"
+                data_dir: "{{ consul_data_dir }}"
+                encrypt: "${consul_encrypt}"
+                datacenter: "${consul_datacenter}"
+                enable_syslog: true
+                server: false
+                ui: true
+                enable_script_checks: true
+                services:
+                  - name: "${name}"
+                    checks:
+                      - http: "http://127.0.0.1:9200"
+                        method: "GET"
+                        interval: "2s"
+                  - name: "exporter_node"
+                    port: 9100
+                rejoin_after_leave: true
+                retry_join:
+                  - "${consul}"
+
+    path: /usr/src/cloud/playbook.yml
+    permissions: '0400'
+
+
+
+
+runcmd:
+  - |
+      bash <<'EOF'
+      # Run main playbook
+      export COMPLETED=false
+      while [ "$COMPLETED" == "false" ]; do
+        (
+          apt-get update -y
+          cd /usr/src/cloud
+          source venv/bin/activate
+          ansible-playbook -e ansible_python_interpreter=/usr/bin/python --connection=local playbook.yml
+        ) >> /var/log/cloud-scripts.log 2>&1
+        if [ $? == 0 ]; then
+          COMPLETED=true
+        fi
+        sleep 1
+      done
+      export COMPLETED=false
+      EOF
+
