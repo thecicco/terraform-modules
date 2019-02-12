@@ -1,14 +1,35 @@
 #!/bin/bash
 
 set -e
+TIMEOUT=300
+LOCKFILE="$(basename $0).lock"
+touch $LOCKFILE
+exec {FD}<>$LOCKFILE
+if ! flock -x $FD; then
+	exit 1
+else
+	vcd login https://admin.c2.kvdc.it ENTDDNQEP001 admin >/dev/null
+	EXIST=$(vcd catalog info $CATALOG_NAME $TEMPLATE_NAME 2>/dev/null |grep "template-id" )|| true
 
-OUTPUT=$(ovftool -tt=vCloud $TEMPLATE_URL "vcloud://$VCD_URL")|| true
-echo $OUTPUT > out.txt
-echo $VCD_URL > url.txt
-
-if [[ $OUTPUT == *"vApp name already found"* ]]; then
-	jq -r -n --arg template_name "${TEMPLATE_NAME}" --arg output  "${TEMPLATE_NAME} already exist" '{"template_name":$template_name,"output":$output}'
-elif [[ $OUTPUT == *"Transfer Completed"* ]]; then
-	jq -r -n --arg template_name "${TEMPLATE_NAME}" --arg output  "${TEMPLATE_NAME} uploaded successfully" '{"template_name":$template_name,"output":$output}'
+	if [[ $EXIST == "" ]]; then
+		if $(wget -q $TEMPLATE_URL -O $TEMPLATE_NAME.ova > /dev/null); then
+			vcd catalog upload $CATALOG_NAME $TEMPLATE_NAME.ova -i $TEMPLATE_NAME > /dev/null
+			while [[ $STATUS != "RESOLVED" ]]
+			do
+				STATUS=$(vcd catalog list $CATALOG_NAME |grep  $TEMPLATE_NAME |awk '{print $6}')
+				sleep 5
+				COUNT=$[COUNT+5]
+				if (( "$COUNT" > "$TIMEOUT" )); then
+					jq -r -n --arg template_name "${TEMPLATE_NAME}" --arg output  "Warning: ${TEMPLATE_NAME} upload may be failed. Check for errors ( workaround for concurrent ovf tool upload)" '{"template_name":$template_name,"output":$output}'
+					exit 1
+				fi
+			done
+			jq -r -n --arg template_name "${TEMPLATE_NAME}" --arg output  "${TEMPLATE_NAME} uploaded successfully" '{"template_name":$template_name,"output":$output}'
+			rm -f $TEMPLATE_NAME.ova
+		else
+			jq -r -n --arg template_name "${TEMPLATE_NAME}" --arg output  "Warning: ${TEMPLATE_NAME} upload may be failed. Check for errors ( workaround for concurrent ovf tool upload)" '{"template_name":$template_name,"output":$output}'
+		fi
+	else
+		jq -r -n --arg template_name "${TEMPLATE_NAME}" --arg output  "${TEMPLATE_NAME} already exist" '{"template_name":$template_name,"output":$output}'
+	fi
 fi
-#jq -r -n --arg template_name "Ubuntu-16.04-CloudInit" --arg output  "Ubuntu-16.04-CloudInit uploaded successfully" '{"template_name":$template_name,"output":$output}'
