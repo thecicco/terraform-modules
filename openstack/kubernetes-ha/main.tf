@@ -39,8 +39,13 @@ module "kubernetes-all-from-internal_sg" {
   protocol = ""
   allow_remote = "${data.openstack_networking_subnet_v2.subnet.cidr}"
 }
-
 # Cloud init scripts
+
+#+----------------------------------------------------------------------------+
+#|                          T e m p l a t e  F i l e                          |
+#+----------------------------------------------------------------------------+
+
+# template master
 data "template_file" "cloud-config-master" {
   template = "${file("${path.module}/kube-master.yml")}"
   count = "${var.master_count}"
@@ -69,6 +74,7 @@ data "template_file" "cloud-config-master" {
   }
 }
 
+# template worker
 data "template_file" "cloud-config-worker" {
   template = "${file("${path.module}/kube-worker.yml")}"
   count = "${var.worker_count}"
@@ -88,6 +94,39 @@ data "template_file" "cloud-config-worker" {
     consul_encrypt = "${var.consul_encrypt}"
   }
 }
+
+# template heketi
+data "template_file" "cloud-config-heketi" {
+  template = "${file("${path.module}/kube-heketi.yml")}"
+  count = "${var.heketi_count}"
+  vars {
+    name = "${var.heketi_name}"
+    master-ip  = "${element(module.kubernetes_master.instance-address,0)}"
+    hostname = "${var.heketi_name}-${count.index}"
+    heketi_admin_password = "${var.heketi_admin_password}"
+    heketi_count = "${var.heketi_count}"
+    kube-token = "${format("%s.%s", random_string.kube-first-token-part.result, random_string.kube-second-token-part.result)}"
+    os_api_url = "${var.cloud_os_api_url}"
+    os_tenant_name = "${var.cloud_os_tenant_name}"
+    os_username = "${var.cloud_os_username}"
+    os_password = "${var.cloud_os_password}"
+    os_region = "${var.cloud_os_region}"
+    heketi_heketi_container_version = "${var.heketi_heketi_container_version}"
+    heketi_glusterfs_container_version = "${var.heketi_glusterfs_container_version}"
+    heketi_namespace = "${var.heketi_namespace}"
+    dns-service-addr = "${cidrhost(var.service-network-cidr, 10)}"
+    consul = "${var.consul}"
+    consul_port = "${var.consul_port}"
+    consul_datacenter = "${var.consul_datacenter}"
+    consul_encrypt = "${var.consul_encrypt}"
+
+  }
+}
+
+
+#+----------------------------------------------------------------------------+
+#|                     K u b e r n e t e s  M o d u l e s                     |
+#+----------------------------------------------------------------------------+
 
 # Kubernetes master node
 module "kubernetes_master" {
@@ -131,6 +170,55 @@ module "kubernetes_workers" {
   }
 }
 
+# Kubernetes Heketi nodes
+module "kubernetes_heketi" {
+  source = "github.com/entercloudsuite/terraform-modules//openstack/instance?ref=2.7"
+  name = "${var.heketi_name}"
+  region = "${var.region}"
+  image = "${var.image}"
+  quantity = "${var.heketi_count}"
+  external = "false"
+  discovery = "true"
+  flavor = "${var.heketi_flavor}"
+  network_name = "${var.network_name}"
+  sec_group = "${concat(var.custom_secgroups_workers, list("${module.kubernetes-all-from-internal_sg.sg_id}"))}"
+  keypair = "${var.keyname}"
+  userdata = "${data.template_file.cloud-config-heketi.*.rendered}"
+  allowed_address_pairs = "0.0.0.0/0"
+  postdestroy = "${data.template_file.heketi_cleanup.rendered}"
+  tags = {
+    "server_group" = "KUBERNETES"
+  }
+}
+
+module "heketi-volume" {
+  source = "github.com/entercloudsuite/terraform-modules//openstack/volume?ref=2.7"
+  name = "${var.heketi_name}"
+  size = "${var.heketi_volume_size}"
+  instance = "${module.kubernetes_heketi.instance}"
+  quantity = "${module.kubernetes_heketi.quantity}"
+  region = "${var.region}"
+  volume_type = "${var.heketi_volume_type}"
+}
+
+#+----------------------------------------------------------------------------+
+#|                              C l e a n u p                                 |
+#+----------------------------------------------------------------------------+
+
+# cleanup master
+data "template_file" "master_cleanup" {
+  template = "${file("${path.module}/cleanup.sh")}"
+  vars {
+    name = "${var.master_name}"
+    quantity = "${var.master_count}"
+    consul = "${var.consul}"
+    consul_port = "${var.consul_port}"
+    consul_datacenter = "${var.consul_datacenter}"
+    consul_encrypt = "${var.consul_encrypt}"
+  }
+}
+
+# cleanup worker
 data "template_file" "worker_cleanup" {
   template = "${file("${path.module}/cleanup.sh")}"
   vars {
@@ -143,11 +231,12 @@ data "template_file" "worker_cleanup" {
   }
 }
 
-data "template_file" "master_cleanup" {
+# cleanup heketi
+data "template_file" "heketi_cleanup" {
   template = "${file("${path.module}/cleanup.sh")}"
   vars {
-    name = "${var.master_name}"
-    quantity = "${var.master_count}"
+    name = "${var.heketi_name}"
+    quantity = "${var.heketi_count}"
     consul = "${var.consul}"
     consul_port = "${var.consul_port}"
     consul_datacenter = "${var.consul_datacenter}"
