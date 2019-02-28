@@ -532,6 +532,7 @@ write_files:
        Environment="KUBELET_AUTHZ_ARGS=--authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/ca.crt"
        Environment="KUBELET_CERTIFICATE_ARGS=--rotate-certificates=true --cert-dir=/var/lib/kubelet/pki"
        Environment="KUBELET_CLOUD_ARGS=--cloud-provider=openstack --cloud-config=/etc/kubernetes/openstack/cloud.conf"
+       Environment="KUBELET_EXTRA_ARGS=--authentication-token-webhook=true --authorization-mode=Webhook"
        ExecStart=
        ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_SYSTEM_PODS_ARGS $KUBELET_NETWORK_ARGS $KUBELET_DNS_ARGS $KUBELET_AUTHZ_ARGS $KUBELET_CADVISOR_ARGS $KUBELET_CERTIFICATE_ARGS $KUBELET_CLOUD_ARGS $KUBELET_EXTRA_ARGS
     path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
