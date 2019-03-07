@@ -18,7 +18,6 @@ if [ ${quantity} == 0 ]; then
   echo "is the last node so clean up everything"
   # remove consul keys
   curl -sS -X DELETE "http://${consul}:${consul_port}/v1/kv/kubernetes/master/${name}?recurse=yes"
-  curl -sS -X DELETE "http://${consul}:${consul_port}/v1/kv/heketi/master/${name}?recurse=yes"
 fi
 
 exit 0

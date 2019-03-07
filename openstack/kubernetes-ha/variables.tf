@@ -6,10 +6,6 @@ variable "worker_name" {
   default = "kubernetes-workers"
 }
 
-variable "heketi_name" {
-  default = "kubernetes-heketi"
-}
-
 variable "region" {
   default = "it-mil1"
 }
@@ -22,42 +18,12 @@ variable "worker_count" {
    default = "2"
 }
 
-variable "heketi_count" {
-   default = "3"
-}
-
 variable "master_flavor" {
    default = "e3standard.x2"
 }
 
 variable "worker_flavor" {
    default = "e3standard.x3"
-}
-
-variable "heketi_flavor" {
-   default = "e3standard.x3"
-}
-
-variable "heketi_namespace" {
-   default = "heketi"
-}
-
-variable "heketi_volume_size" {
-}
-
-variable "heketi_glusterfs_container_version" {
-   default = "gluster4u0_centos7"
-}
-
-variable "heketi_heketi_container_version" {
-   default = "8"
-}
-
-variable "heketi_volume_type" {
-  default = "Top"
-}
-
-variable "heketi_admin_password" {
 }
 
 variable "floating_ip_pool" {

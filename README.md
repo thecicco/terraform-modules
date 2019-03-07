@@ -1,3 +1,3 @@
-# TERRAFORM MODULES by ECS
+# TERRAFORM MODULES
 
 each folder represents a different provider
