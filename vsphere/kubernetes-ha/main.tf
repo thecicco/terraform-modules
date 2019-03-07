@@ -51,7 +51,7 @@ data "template_file" "cloud-config-worker" {
 
 # Kubernetes master node
 module "kubernetes_master" {
-  source = "github.com/entercloudsuite/terraform-modules//vsphere/instance?ref=multivmware"
+  source = "github.com/entercloudsuite/terraform-modules//vsphere/instance?ref=2.7"
   name = "${var.master_name}"
   template = "${var.template}"
   quantity = "${var.master_count}"
@@ -74,7 +74,7 @@ module "kubernetes_master" {
 
 # Kubernetes worker nodes
 module "kubernetes_workers" {
-  source = "github.com/entercloudsuite/terraform-modules//vsphere/instance?ref=multivmware"
+  source = "github.com/entercloudsuite/terraform-modules//vsphere/instance?ref=2.7"
   name = "${var.worker_name}"
   template = "${var.template}"
   quantity = "${var.worker_count}"

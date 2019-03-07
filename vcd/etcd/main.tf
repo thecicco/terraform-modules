@@ -1,5 +1,5 @@
 module "etcd" {
-  source = "github.com/mdacrema/terraform-modules//vcd/instance?ref=multivmware"
+  source = "github.com/mdacrema/terraform-modules//vcd/instance?ref=2.7"
   name = "${var.name}"
   quantity = "${var.quantity}"
   cpus = "${var.cpus}"

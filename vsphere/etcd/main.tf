@@ -1,5 +1,5 @@
 module "etcd" {
-  source = "github.com/entercloudsuite/terraform-modules//vsphere/instance?ref=multivmware"
+  source = "github.com/entercloudsuite/terraform-modules//vsphere/instance?ref=2.7"
   name = "${var.name}"
   quantity = "${var.quantity}"
   cpus = "${var.cpus}"
