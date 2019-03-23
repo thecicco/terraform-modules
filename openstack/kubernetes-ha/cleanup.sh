@@ -2,8 +2,8 @@
 
 set -x
 
-function node_exist() {
-  curl -s "http://${consul}:${consul_port}/v1/agent/members" | jq '.[] | select(.Name=="${name}")'
+node_exist() {
+  curl -s "http://$${consul}:$${consul_port}/v1/agent/members" | jq ".[] | select(.Name==\"$${name}-$${_NUMBER}\") | select(.Status!=3)"
 }
 
 while [ "$(node_exist)" ]; do
