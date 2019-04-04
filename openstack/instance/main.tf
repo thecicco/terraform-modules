@@ -56,12 +56,25 @@ resource "openstack_networking_port_v2" "port_local" {
   }
 }
 
+resource "openstack_images_image_v2" "image" {
+  name   = "${var.image}"
+  region = "${var.region}"
+  image_source_url = "https://swift.entercloudsuite.com/v1/KEY_1a68c22a99cd4e558054ede2c878929d/automium-catalog-images/openstack/${var.image}.qcow2"
+
+  container_format = "bare"
+  disk_format = "qcow2"
+
+  properties = {
+    author = "automium"
+  }
+}
+
 resource "openstack_compute_instance_v2" "cluster" {
   region = "${var.region}"
   count = "${var.quantity}"
   flavor_name = "${var.flavor}"
   name = "${var.name}-${count.index}"
-  image_name = "${var.image}"
+  image_id = "${openstack_images_image_v2.image.id}"
   key_pair = "${var.keypair}"
   
   scheduler_hints {
@@ -77,6 +90,7 @@ resource "openstack_compute_instance_v2" "cluster" {
     ignore_changes = ["user_data","image_name"]
   }
 
+  stop_before_destroy = "true"
   metadata = "${var.tags}"
   user_data = "${element(var.userdata,count.index)}"
   depends_on = ["null_resource.postdestroy"]
