@@ -13,6 +13,21 @@ variable "sec_group" {
 variable "keypair" {
 }
 
+variable "haproxy_vip_0" {
+}
+
+variable "haproxy_vip_1" {
+}
+
+variable "haproxy_subnet" {
+}
+
+variable "haproxy_virtual_router_id_0" {
+}
+
+variable "haproxy_virtual_router_id_1" {
+}
+
 variable "flavor" {
   default = "e3standard.x2"
 }
@@ -25,7 +40,7 @@ variable "network_name" {
 }
 
 variable "image" {
-  default = "ecs-haproxy 1.1.6"
+  default = "ecs-haproxy-1.1.8"
 }
 
 variable "discovery" {

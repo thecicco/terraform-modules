@@ -1,5 +1,5 @@
 module "haproxy" {
-  source = "github.com/entercloudsuite/terraform-modules//openstack/instance?ref=2.7"
+  source = "github.com/automium/terraform-modules//openstack/haproxy?ref=master"
   name = "${var.name}"
   quantity = "${var.quantity}"
   external = "${var.external}"
@@ -31,11 +31,32 @@ data "template_file" "cloud-config" {
     haproxy_stats = "${var.haproxy_stats}"
     haproxy_conf = "${indent(14,var.haproxy_conf)}"
     haproxy_cert = "${indent(14,var.haproxy_cert)}"
+    haproxy_virtual_router_id_0 = "${var.haproxy_virtual_router_id_0}"
+    haproxy_virtual_router_id_1 = "${var.haproxy_virtual_router_id_1}"
+    haproxy_subnet = "${var.haproxy_subnet}"
+    haproxy_vip_0 = "${var.haproxy_vip_0}"
+    haproxy_vip_1 = "${var.haproxy_vip_1}"
     consul = "${var.consul}"
     consul_port = "${var.consul_port}"
     consul_datacenter = "${var.consul_datacenter}"
     consul_encrypt = "${var.consul_encrypt}"
   }
+}
+
+module "external_vip_0" {
+  name = "${var.name}-vip"
+  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.7-devel"
+  external_vip = "${var.haproxy_vip_0}"
+  network_name = "${var.network_name}"
+  discovery = "${var.discovery}"
+}
+
+module "external_vip_1" {
+  name = "${var.name}-vip"
+  source = "github.com/entercloudsuite/terraform-modules//external_vip?ref=2.7-devel"
+  external_vip = "${var.haproxy_vip_1}"
+  network_name = "${var.network_name}"
+  discovery = "${var.discovery}"
 }
 
 data "template_file" "cleanup" {
