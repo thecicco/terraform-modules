@@ -41,7 +41,7 @@ resource "openstack_compute_floatingip_associate_v2" "external_ip" {
 
 resource "openstack_networking_port_v2" "port_local" {
   count = "${var.quantity}"
-  name = "port_local-${count.index}"
+  name = "${var.name}-${count.index}"
   network_id = "${data.openstack_networking_network_v2.instance_network.id}"
   admin_state_up = "true"
   region = "${var.region}"
@@ -52,7 +52,7 @@ resource "openstack_networking_port_v2" "port_local" {
   }
 
   lifecycle {
-    ignore_changes = ["allowed_address_pairs"]
+    ignore_changes = ["allowed_address_pairs","dns_name"]
   }
 }
 
