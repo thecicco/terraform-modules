@@ -87,7 +87,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   }
 
   lifecycle {
-    ignore_changes = ["user_data","image_name"]
+    ignore_changes = ["user_data","image_id"]
   }
 
   stop_before_destroy = "true"
