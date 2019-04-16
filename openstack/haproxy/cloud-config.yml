@@ -44,6 +44,46 @@ write_files:
                 rejoin_after_leave: true
                 retry_join:
                   - "${consul}"
+          - role: entercloudsuite.keepalived
+            keepalived_options:
+              - name: log-detail
+            keepalived_vrrp_scripts:
+              chk_haproxy:
+                script: '/bin/pidof haproxy'
+                weight: 100
+                interval: 1
+
+            keepalived_vrrp_instances:
+              VI_1:
+                interface: "{{ ansible_default_ipv4.interface }}"
+                state: "{% if ${number} == 0 %}MASTER{% else %}BACKUP{% endif %}"
+                priority: "{{ 110 - ${number}0 }}"
+                virtual_router_id: ${haproxy_virtual_router_id_0}
+                authentication:
+                  auth_type: PASS
+                  auth_pass: '${haproxy_pass}'
+                virtual_ipaddresses:
+                  - '${haproxy_vip_0}/${haproxy_subnet} dev {{ ansible_default_ipv4.interface }} label {{ ansible_default_ipv4.interface }}:1'
+                track_scripts:
+                  - chk_haproxy
+
+              VI_2:
+                interface: "{{ ansible_default_ipv4.interface }}"
+                state: "{% if ${number} == 0 %}BACKUP{% else %}MASTER{% endif %}"
+                priority: "{{ 110 - ${number}1 }}"
+                virtual_router_id: ${haproxy_virtual_router_id_1}
+
+                authentication:
+                  auth_type: PASS
+                  auth_pass: '${haproxy_pass}'
+
+                virtual_ipaddresses:
+                  - '${haproxy_vip_1}/${haproxy_subnet} dev {{ ansible_default_ipv4.interface }} label {{ ansible_default_ipv4.interface }}:1'
+
+                track_scripts:
+                  - chk_haproxy
+
+
     path: /usr/src/cloud/playbook.yml
     permissions: '0400'
 
