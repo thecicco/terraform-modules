@@ -48,7 +48,7 @@ variable "region" {
 }
 
 variable "image" {
-  default = "GNU/Linux Ubuntu Server 16.04 Xenial Xerus x64"
+  default = "ubuntu1804-1.0.0-4"
 }
 
 variable "floating_ip_pool" {
