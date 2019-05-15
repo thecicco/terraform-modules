@@ -56,17 +56,24 @@ resource "openstack_networking_port_v2" "port_local" {
   }
 }
 
-resource "openstack_images_image_v2" "image" {
-  name   = "${var.image}"
-  region = "${var.region}"
-  image_source_url = "https://swift.entercloudsuite.com/v1/KEY_1a68c22a99cd4e558054ede2c878929d/automium-catalog-images/openstack/${var.image}.qcow2"
+data "external" "image_sync" {
+  program = [
+    "/bin/bash",
+    "-c",
+    <<EOF
+export OS_REGION=${var.region}
+export OS_AUTH_URL=${var.auth_url}
+export OS_TENANT_NAME=${var.tenant_name}
+export OS_USER_NAME=${var.user_name}
+export OS_PASSWORD=${var.password}
+export IMAGE=${var.image}
+bash ${path.module}/image_sync.sh
+EOF
+  ]
+}
 
-  container_format = "bare"
-  disk_format = "qcow2"
-
-  properties = {
-    author = "automium"
-  }
+output "image_sync_message" {
+  value = "${data.external.image_sync.result.output}"
 }
 
 resource "openstack_compute_instance_v2" "cluster" {
@@ -74,7 +81,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   count = "${var.quantity}"
   flavor_name = "${var.flavor}"
   name = "${var.name}-${count.index}"
-  image_id = "${openstack_images_image_v2.image.id}"
+  image_id = "${data.external.image_sync.result.image_uuid}"
   key_pair = "${var.keypair}"
   
   scheduler_hints {
