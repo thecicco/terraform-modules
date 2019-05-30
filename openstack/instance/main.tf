@@ -52,7 +52,7 @@ resource "openstack_networking_port_v2" "port_local" {
   }
 
   lifecycle {
-    ignore_changes = ["allowed_address_pairs","dns_name"]
+    ignore_changes = ["*"]
   }
 }
 
@@ -94,7 +94,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   }
 
   lifecycle {
-    ignore_changes = ["user_data","image_id"]
+    ignore_changes = ["*"]
   }
 
   stop_before_destroy = "true"
