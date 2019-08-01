@@ -15,6 +15,7 @@ else
   done
   )
   IMAGE_UUID=$(openstack image list -f json | jq -r "map(select(.Name==\"${IMAGE}\")) | map(select(.Status==\"active\")) | .[0] | .ID | select(.!=null)")
+  openstack image set --property hw_vif_multiqueue_enabled='true' ${IMAGE_UUID}
 fi
 
 OUTPUT=$(echo $OUTPUT | cut -c 1-20)
