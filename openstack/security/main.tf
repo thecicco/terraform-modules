@@ -6,7 +6,6 @@ resource "openstack_networking_secgroup_v2" "secgroup_public" {
 
   lifecycle {
     ignore_changes = ["*"]
-    prevent_destroy = true
   }
 }
 
@@ -30,7 +29,6 @@ resource "openstack_networking_secgroup_rule_v2" "in" {
 
   lifecycle {
     ignore_changes = ["*"]
-    prevent_destroy = true
   }
 }
 
@@ -44,6 +42,5 @@ resource "openstack_networking_secgroup_rule_v2" "out" {
 
   lifecycle {
     ignore_changes = ["*"]
-    prevent_destroy = true
   }
 }
