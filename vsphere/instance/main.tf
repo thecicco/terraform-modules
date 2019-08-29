@@ -64,7 +64,7 @@ resource "vsphere_virtual_machine" "instance" {
   }
 
   lifecycle {
-    ignore_changes = ["cdrom.0.path","clone.0.template_uuid","disk.0.io_share_count","disk.0.key","disk.0.uuid","disk.0.datastore_id","disk.0.device_address","disk.0.path"]
+    ignore_changes = ["*"]
   }
 
   depends_on = ["vsphere_file.cloud_init_iso_upload","null_resource.postdestroy"]
@@ -95,6 +95,10 @@ resource "consul_catalog_entry" "service_local" {
     port    = "${var.discovery_port}"
     tags    = ["${count.index}"]
   }
+
+  lifecycle {
+    ignore_changes = ["*"]
+  }
 }
 
 data "template_file" "meta-data" {
@@ -122,6 +126,10 @@ genisoimage -output ${path.module}/${var.name}-${count.index}-user-data.iso -vol
 rm -rf ${path.module}/${var.name}-${count.index}-iso
 EOF
   }
+
+  lifecycle {
+    ignore_changes = ["*"]
+  }
 }
 
 resource "vsphere_file" "cloud_init_iso_upload" {
@@ -132,6 +140,10 @@ resource "vsphere_file" "cloud_init_iso_upload" {
   create_directories = "true"
   source_file      = "${path.module}/${var.name}-${count.index}-user-data.iso"
   destination_file = "${var.folder}/${var.name}-${count.index}-user-data.iso"
+
+  lifecycle {
+    ignore_changes = ["*"]
+  }
 }
 
 resource "null_resource" "cloud_init_iso_clean" {
@@ -139,6 +151,10 @@ resource "null_resource" "cloud_init_iso_clean" {
   depends_on = ["vsphere_file.cloud_init_iso_upload"]
   provisioner "local-exec" {
     command = "rm ${path.module}/${var.name}-${count.index}-user-data.iso"
+  }
+
+  lifecycle {
+    ignore_changes = ["*"]
   }
 }
 
