@@ -69,3 +69,7 @@ variable "discovery_port" {
 }
 
 variable "cluster" {}
+
+variable "vsphere_insecure" {
+  default = 1
+}

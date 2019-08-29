@@ -148,7 +148,7 @@ data "external" "image_sync" {
     "-c",
     <<EOF
 export GOVC_URL='${var.vsphere_user}:${var.vsphere_password}@${var.vsphere_server}'
-export GOVC_INSECURE=1
+export GOVC_INSECURE='${var.vsphere_insecure}'
 export GOVC_FOLDER=${var.folder}
 export TEMPLATE_NAME=${var.template}
 export TEMPLATE_DC=${var.datacenter}
