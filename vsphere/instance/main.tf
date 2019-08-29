@@ -18,7 +18,7 @@ data "vsphere_network" "vm-network" {
 }
 
 data "vsphere_virtual_machine" "template" {
-  name          = "${data.external.image_sync.result.template_name}"
+  name          = "${lookup(data.external.image_sync.result, "template_name")}"
   datacenter_id = "${data.vsphere_datacenter.datacenter.id}"
 }
 
@@ -27,9 +27,14 @@ data "vsphere_compute_cluster" "cluster" {
   datacenter_id = "${data.vsphere_datacenter.datacenter.id}"
 }
 
+resource "vsphere_resource_pool" "resource_pool" {
+  name          = "${var.name}"
+  parent_resource_pool_id = "${data.vsphere_compute_cluster.cluster.resource_pool_id}"
+}
+
 resource "vsphere_virtual_machine" "instance" {
   name             = "${var.name}-${count.index}"
-  resource_pool_id = "${data.vsphere_compute_cluster.cluster.resource_pool_id}"
+  resource_pool_id = "${vsphere_resource_pool.resource_pool.id}"
   datastore_cluster_id = "${data.vsphere_datastore_cluster.datastore.id}"
   count = "${var.quantity}"
 
@@ -75,12 +80,6 @@ resource "vsphere_compute_cluster_vm_anti_affinity_rule" "cluster_vm_anti_affini
   name                = "${var.name}-terraform--cluster-vm-anti-affinity-rule"
   compute_cluster_id  = "${data.vsphere_compute_cluster.cluster.id}"
   virtual_machine_ids = ["${vsphere_virtual_machine.instance.*.id}"]
-}
-
-resource "vsphere_folder" "folder" {
-  path          = "${var.folder}"
-  type          = "vm"
-  datacenter_id = "${data.vsphere_datacenter.datacenter.id}"
 }
 
 resource "consul_catalog_entry" "service_local" {
@@ -174,11 +173,10 @@ export TEMPLATE_POOL=/${var.datacenter}/host/${var.cluster}/Resources
 bash ${path.module}/image_sync.sh
 EOF
   ]
-  depends_on = ["vsphere_folder.folder"]
 }
 
 output "image_sync_message" {
-  value = "${data.external.image_sync.result.output}"
+  value = "${lookup(data.external.image_sync.result,"output")}"
 }
 
 resource "null_resource" "postdestroy" {
