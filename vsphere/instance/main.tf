@@ -40,6 +40,8 @@ resource "vsphere_virtual_machine" "instance" {
   guest_id = "${data.vsphere_virtual_machine.template.guest_id}"
   scsi_type = "${data.vsphere_virtual_machine.template.scsi_type}"
 
+  folder = "${var.folder}"
+
   network_interface {
     network_id = "${data.vsphere_network.vm-network.id}"
     adapter_type = "${data.vsphere_virtual_machine.template.network_interface_types[0]}"
@@ -73,6 +75,12 @@ resource "vsphere_compute_cluster_vm_anti_affinity_rule" "cluster_vm_anti_affini
   name                = "${var.name}-terraform--cluster-vm-anti-affinity-rule"
   compute_cluster_id  = "${data.vsphere_compute_cluster.cluster.id}"
   virtual_machine_ids = ["${vsphere_virtual_machine.instance.*.id}"]
+}
+
+resource "vsphere_folder" "folder" {
+  path          = "${var.folder}"
+  type          = "vm"
+  datacenter_id = "${data.vsphere_datacenter.datacenter.id}"
 }
 
 resource "consul_catalog_entry" "service_local" {
@@ -141,15 +149,16 @@ data "external" "image_sync" {
     <<EOF
 export GOVC_URL='${var.vsphere_user}:${var.vsphere_password}@${var.vsphere_server}'
 export GOVC_INSECURE=1
+export GOVC_FOLDER=${var.folder}
 export TEMPLATE_NAME=${var.template}
 export TEMPLATE_DC=${var.datacenter}
 export TEMPLATE_DS=${var.template_datastore}
 export TEMPLATE_URL=https://swift.entercloudsuite.com/v1/KEY_1a68c22a99cd4e558054ede2c878929d/automium-catalog-images/vsphere/${var.template}.ova
 export TEMPLATE_POOL=/${var.datacenter}/host/${var.cluster}/Resources
-export TEMPLATE_FOLDER=${var.folder}
 bash ${path.module}/image_sync.sh
 EOF
   ]
+  depends_on = ["vsphere_folder.folder"]
 }
 
 output "image_sync_message" {
