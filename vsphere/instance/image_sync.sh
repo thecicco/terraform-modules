@@ -5,6 +5,11 @@ set -x
 
 OUTPUT=$({
 
+# Create folder if doesn't exist
+if ! $(govc find -type f -name ${GOVC_FOLDER} | sed "s/\/${TEMPLATE_DC}\/vm\///g" | grep ^${GOVC_FOLDER}$ > /dev/null); then
+  govc folder.create /${TEMPLATE_DC}/vm/${GOVC_FOLDER}
+fi
+
 EXISTING_TEMPLATE="$(govc find -type m -name "${TEMPLATE_NAME}" | head -n 1)"
 if [ -n "${EXISTING_TEMPLATE}" ]; then
   echo ${TEMPLATE_NAME} already exist, skip image upload
