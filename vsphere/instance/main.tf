@@ -45,7 +45,7 @@ resource "vsphere_virtual_machine" "instance" {
   guest_id = "${data.vsphere_virtual_machine.template.guest_id}"
   scsi_type = "${data.vsphere_virtual_machine.template.scsi_type}"
 
-  folder = "${var.folder}"
+  folder = "${lookup(data.external.image_sync.result, "template_folder")}/${var.folder}"
 
   network_interface {
     network_id = "${data.vsphere_network.vm-network.id}"
@@ -65,7 +65,7 @@ resource "vsphere_virtual_machine" "instance" {
 
   cdrom {
     datastore_id = "${data.vsphere_datastore.iso_datastore.id}"
-    path         = "${var.folder}/${var.name}-${count.index}-user-data.iso"
+    path         = "${var.root_folder}/${var.folder}/${var.name}-${count.index}-user-data.iso"
   }
 
   lifecycle {
@@ -138,7 +138,7 @@ resource "vsphere_file" "cloud_init_iso_upload" {
   datastore        = "${var.iso_datastore}"
   create_directories = "true"
   source_file      = "${path.module}/${var.name}-${count.index}-user-data.iso"
-  destination_file = "${var.folder}/${var.name}-${count.index}-user-data.iso"
+  destination_file = "${var.root_folder}/${var.folder}/${var.name}-${count.index}-user-data.iso"
 
   lifecycle {
     ignore_changes = ["*"]
@@ -164,7 +164,8 @@ data "external" "image_sync" {
     <<EOF
 export GOVC_URL='${var.vsphere_user}:${var.vsphere_password}@${var.vsphere_server}'
 export GOVC_INSECURE='${var.vsphere_insecure}'
-export GOVC_FOLDER=${var.folder}
+export GOVC_FOLDER=${var.root_folder}
+export FOLDER=${var.folder}
 export TEMPLATE_NAME=${var.template}
 export TEMPLATE_DC=${var.datacenter}
 export TEMPLATE_DS=${var.template_datastore}

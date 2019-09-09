@@ -49,8 +49,12 @@ variable "network_name" {
 variable "datacenter" {
 }
 
-variable "folder" {
+variable "root_folder" {
   default = "automium"
+}
+
+variable "folder" {
+  default = ""
 }
 
 variable "keypair" {
