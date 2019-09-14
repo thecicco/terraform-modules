@@ -2,7 +2,7 @@ data "vsphere_datacenter" "datacenter" {
   name = "${var.datacenter}"
 }
 
-data "vsphere_datastore" "datastore" {
+data "vsphere_datastore_cluster" "datastore" {
   name          = "${var.datastore}"
   datacenter_id = "${data.vsphere_datacenter.datacenter.id}"
 }
@@ -35,7 +35,7 @@ resource "vsphere_resource_pool" "resource_pool" {
 resource "vsphere_virtual_machine" "instance" {
   name             = "${var.name}-${count.index}"
   resource_pool_id = "${vsphere_resource_pool.resource_pool.id}"
-  datastore_id = "${data.vsphere_datastore.datastore.id}"
+  datastore_cluster_id = "${data.vsphere_datastore_cluster.datastore.id}"
   count = "${var.quantity}"
 
   num_cpus = "${var.cpus}"
