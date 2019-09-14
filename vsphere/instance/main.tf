@@ -68,6 +68,8 @@ resource "vsphere_virtual_machine" "instance" {
     path         = "${var.root_folder}/${var.folder}/${var.name}-${count.index}-user-data.iso"
   }
 
+  enable_disk_uuid = "true"
+
   lifecycle {
     ignore_changes = ["*"]
   }
