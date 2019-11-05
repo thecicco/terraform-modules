@@ -43,6 +43,10 @@ variable "status" {
   default = "generic"
 }
 
+variable "availability_zones" {
+  default = ["nova"]
+}
+
 variable "region" {
   default = "it-mil1"
 }

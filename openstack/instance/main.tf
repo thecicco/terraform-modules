@@ -78,6 +78,7 @@ output "image_sync_message" {
 
 resource "openstack_compute_instance_v2" "cluster" {
   region = "${var.region}"
+  availability_zone = "${var.availability_zones[count.index % length(var.availability_zones)]}"
   count = "${var.quantity}"
   flavor_name = "${var.flavor}"
   name = "${var.name}-${count.index}"
