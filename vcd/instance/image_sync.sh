@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -x
 TIMEOUT=300
 LOCKFILE="$(basename $0).lock"
 touch $LOCKFILE
@@ -8,7 +9,11 @@ exec {FD}<>$LOCKFILE
 if ! flock -x $FD; then
 	exit 1
 else
-	vcd login https://admin.c2.kvdc.it ENTDDNQEP001 admin >/dev/null
+  vcd login $VCD_URL $VCD_ORG $VCD_USERNAME > /dev/null
+  # Create catalog if doesn't exist
+  if [ $(vcd catalog info $CATALOG_NAME >/dev/null 2>&1; echo $?) == "2" ]; then
+    vcd catalog create $CATALOG_NAME;
+  fi
 	EXIST=$(vcd catalog info $CATALOG_NAME $TEMPLATE_NAME 2>/dev/null |grep "template-id" )|| true
 
 	if [[ $EXIST == "" ]]; then

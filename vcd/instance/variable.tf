@@ -44,6 +44,7 @@ variable "userdata" {
 }
 
 variable "catalog" {
+  default = "automium"
 }
 
 variable "folder" {

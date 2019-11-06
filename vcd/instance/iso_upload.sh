@@ -1,8 +1,9 @@
 #!/bin/bash
 
 set -e
+set -x
 TIMEOUT=300
-vcd login https://admin.c2.kvdc.it ENTDDNQEP001 admin >/dev/null
+vcd login $VCD_URL $VCD_ORG $VCD_USERNAME > /dev/null
 EXIST=$(vcd catalog info $CATALOG_NAME $ISO_NAME 2>/dev/null |grep "template-id" )|| true
 
 if [[ $EXIST != "" ]]; then
