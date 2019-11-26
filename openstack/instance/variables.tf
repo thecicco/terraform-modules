@@ -65,6 +65,7 @@ variable "sec_group" {
 
 variable "sec_group_per_instance" {
   type = "list"
+  default = [""]
 }
 
 variable "keypair" {
