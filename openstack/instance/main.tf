@@ -64,7 +64,7 @@ data "external" "image_sync" {
 export OS_REGION=${var.region}
 export OS_AUTH_URL=${var.auth_url}
 export OS_TENANT_NAME=${var.tenant_name}
-export OS_USER_NAME=${var.user_name}
+export OS_USERNAME=${var.user_name}
 export OS_PASSWORD=${var.password}
 export IMAGE=${var.image}
 bash ${path.module}/image_sync.sh
