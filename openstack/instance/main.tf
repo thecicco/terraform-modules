@@ -45,7 +45,7 @@ resource "openstack_networking_port_v2" "port_local" {
   network_id = "${data.openstack_networking_network_v2.instance_network.id}"
   admin_state_up = "true"
   region = "${var.region}"
-  security_group_ids = ["${concat(var.sec_group,list(element(var.sec_group_per_instance,count.index)))}"]
+  security_group_ids = ["${concat(var.sec_group, var.sec_group_per_instance)}"]
 
   allowed_address_pairs = {
     ip_address = "${var.allowed_address_pairs}"

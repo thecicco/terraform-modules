@@ -65,3 +65,7 @@ variable "discovery" {
 variable "discovery_port" {
   default = 0
 }
+
+variable "disk" {
+  default = ""
+}

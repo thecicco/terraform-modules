@@ -86,9 +86,32 @@ resource "null_resource" "iso_upload" {
   }
 }
 
+resource "null_resource" "resize_disk" {
+  count = "${var.quantity}"
+  depends_on = ["vcd_vapp_vm.instance","vcd_inserted_media.ISO"]
+
+  provisioner "local-exec" {
+    environment {
+      VCD_URL="${var.vcd_url}"
+      VCD_USERNAME="${var.vcd_username}"
+      VCD_PASSWORD="${var.vcd_password}"
+      VCD_ORG="${var.vcd_org}"
+      VAPP_NAME="${var.name}"
+      VM="${var.name}-${count.index}"
+      DISK_SIZE="${var.disk}"
+    }
+    interpreter = ["bash", "-c"]
+    command = "bash ${path.module}/resize_disk.sh"
+  }
+
+  lifecycle {
+    ignore_changes = ["*"]
+  }
+}
+
 resource "null_resource" "power_on" {
   count = "${var.quantity}"
-  depends_on = ["vcd_inserted_media.ISO"]
+  depends_on = ["vcd_inserted_media.ISO","null_resource.resize_disk"]
 
   provisioner "local-exec" {
     environment {
@@ -121,7 +144,7 @@ export VCD_ORG='${var.vcd_org}'
 export CATALOG_NAME='${var.catalog}'
 export VCD_PASSWORD='${var.vcd_password}'
 export TEMPLATE_NAME=${var.template}
-export TEMPLATE_URL=https://swift.entercloudsuite.com/v1/KEY_1a68c22a99cd4e558054ede2c878929d/automium-catalog-images/vsphere/${var.template}.ova
+export TEMPLATE_URL=https://swift.entercloudsuite.com/v1/KEY_1a68c22a99cd4e558054ede2c878929d/automium-catalog-images/vcd/${var.template}.ova
 bash ${path.module}/image_sync.sh
 EOF
   ]
