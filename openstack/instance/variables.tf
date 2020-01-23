@@ -91,3 +91,7 @@ variable "user_name" {
 
 variable "password" {
 }
+
+variable "server_group_policy" {
+  default = "anti-affinity"
+}

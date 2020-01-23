@@ -29,7 +29,7 @@ resource "openstack_compute_servergroup_v2" "clusterSG" {
   count = "${var.quantity > 0 ? 1 : 0}"
   region = "${var.region}"
   name     = "${var.name}"
-  policies = ["anti-affinity"]
+  policies = ["${var.server_group_policy}"]
 }
 
 resource "openstack_compute_floatingip_associate_v2" "external_ip" {
