@@ -61,6 +61,7 @@ variable "floating_ip_pool" {
 
 variable "sec_group" {
   type = "list"
+  default = []
 }
 
 variable "sec_group_per_instance" {
