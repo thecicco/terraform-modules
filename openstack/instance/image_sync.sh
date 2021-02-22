@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-if [[ $IMAGE_UUID == "null" ]]
+if [[ $IMAGE_UUID == "" ]]
 then
 
 IMAGE_UUID="$(openstack image list -f json | jq -r "map(select(.Name==\"${IMAGE}\")) | map(select(.Status==\"active\")) | .[0] | .ID | select (.!=null)")"

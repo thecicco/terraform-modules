@@ -56,7 +56,7 @@ variable "image" {
 }
 
 variable "image_uuid" {
-  default = "null"
+  default = ""
 }
 
 variable "floating_ip_pool" {
