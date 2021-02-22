@@ -2,6 +2,9 @@
 
 set -o pipefail
 
+if [ -z "$IMAGE_UUID" ]
+then
+
 IMAGE_UUID="$(openstack image list -f json | jq -r "map(select(.Name==\"${IMAGE}\")) | map(select(.Status==\"active\")) | .[0] | .ID | select (.!=null)")"
 OUTPUT=""
 
@@ -42,3 +45,6 @@ fi
 
 OUTPUT=$(echo $OUTPUT | cut -c 1-20)
 jq -r -n --arg image_uuid "${IMAGE_UUID}" --arg output "${OUTPUT}" '{"image_uuid":$image_uuid,"output":$output}'
+fi
+
+

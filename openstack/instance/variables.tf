@@ -55,6 +55,9 @@ variable "image" {
   default = "ubuntu1804-1.0.0-4"
 }
 
+variable "image_uuid" {
+}
+
 variable "floating_ip_pool" {
   default = "PublicNetwork"
 }
