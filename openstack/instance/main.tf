@@ -134,13 +134,13 @@ resource "consul_catalog_entry" "service_external" {
   }
 }
 
-resource "null_resource" "postdestroy" {
-  count = "${var.quantity}"
-  provisioner "local-exec" {
-    when = "destroy"
-    command = "${var.postdestroy}"
-    environment {
-      _NUMBER = "${count.index}"
-    }
-  }
-}
+#resource "null_resource" "postdestroy" {
+#  count = "${var.quantity}"
+#  provisioner "local-exec" {
+#    when = "destroy"
+#    command = "${var.postdestroy}"
+#    environment {
+#      _NUMBER = "${count.index}"
+#    }
+#  }
+#}
