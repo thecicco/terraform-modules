@@ -83,8 +83,8 @@ resource "openstack_compute_instance_v2" "cluster" {
   count = "${var.quantity}"
   flavor_name = "${var.flavor}"
   name = "${var.name}-${count.index}"
-  image_id = "${data.external.image_sync.result.image_uuid}"
-  #image_id = "${var.image_uuid == "" ? data.external.image_sync.result.image_uuid : var.image_uuid}"
+  #image_id = "${data.external.image_sync.result.image_uuid}"
+  image_id = "${var.image_uuid == "" ? data.external.image_sync.result.image_uuid : var.image_uuid}"
   key_pair = "${var.keypair}"
   
   scheduler_hints {
