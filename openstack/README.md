@@ -32,6 +32,15 @@ variable "ssh_pubkey" {
   default = "../id.rsa"
 }
 
+terraform {
+required_version = ">= 0.14.0"
+  required_providers {
+    openstack = {
+      source  = "terraform-provider-openstack/openstack"
+      version = "~> 1.35.0"
+    }
+  }
+
 # Define provider
 provider "openstack" {
   auth_url = "auth_url"
@@ -40,42 +49,23 @@ provider "openstack" {
   password = "password"
 }
 
-# Create network
-module "network" {
-  source = "github.com/entercloudsuite/terraform-modules//openstack/network?ref=2.7"
-  region = "${var.region}"
-  name = "general_network"
-  router_id = ""
-}
-
-# Create ssh keypair
-module "keypair" {
-  source = "github.com/entercloudsuite/terraform-modules//openstack/keypair?ref=2.7"
-  ssh_pubkey = "${var.ssh_pubkey}"
-  region = "${var.region}"
-}
-
-# Create ssh firewall policy
-module "ssh" {
-  source = "github.com/entercloudsuite/terraform-modules//openstack/security?ref=2.7"
-  name = "ssh"
-  region = "${var.region}"
-  protocol = "tcp"
-  port_range_min = 22
-  port_range_max = 22
-  allow_remote = "0.0.0.0/0"
-}
-
 # Create instance
 module "web" {
-  source = "github.com/entercloudsuite/terraform-modules//openstack/instance?ref=2.7"
+  source = "github.com/automium/terraform-modules//openstack/instance?ref=2.0"
   name = "web"
+  image = "GNU/Linux Ubuntu Server 18.04 Bionic Beaver x86_x64"
+  image_uuid = "6d5e88b5-58f6-40ba-b6c3-8c32ce6b9af2"
   quantity = 1
+  auth_url = var.openstack_auth_url
+  tenant_name = "test@test.com"
+  user_name = "test@test.com"
+  password = "test"
+  flavor = "e3standard.x2"
   external = "true"
-  flavor = "e3standard.x3"
-  network_name = "${module.network.name}"
-  sec_group = ["${module.ssh.sg_id}"]
-  keypair = "${module.keypair.name}"
+  network_name = var.network_name
+  region = var.region
+  keypair = module.keypair.name
+  sec_group_per_instance = [data.openstack_networking_secgroup_v2.default.id]
   tags = {
     "server_group" = "WEB"
   }
@@ -102,11 +92,11 @@ module "web" {
 ```
 # Create volume for each web instance
 module "volume-web" {
-  source = "github.com/entercloudsuite/terraform-modules//openstack/volume?ref=2.7"
+  source = "github.com/automium/terraform-modules//openstack/volume?ref=2.0"
   name = "volume-web"
   size = "10"
-  instance = "${module.web.instance}"
-  quantity = "${module.web.quantity}"
+  instance = module.web.instance
+  quantity = "module.web.quantity
   volume_type = "Top"
 }
 ```
@@ -136,19 +126,6 @@ terraform {
 * tenant_name
 * username
 * password
-
-
-### External vip
-
-Expose vip with a floating ip
-
-```
-module "external_vip_web" {
-  source = "github.com/entercloudsuite/terraform-modules//openstack/external_vip?ref=2.7"
-  external_vips = ["10.2.255.1","10.2.255.2"]
-  network_name = "${var.network_name}"
-}
-```
 
 ## Note
 This project is still in development, more documentation and modules will be added in the future. Stay tuned!
