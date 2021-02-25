@@ -28,7 +28,7 @@ variable "quantity" {
 }
 
 variable "tags" {
-  type = "map"
+  type = map(string)
   default = {
     role = "generic"
     status = "generic"
@@ -64,12 +64,12 @@ variable "floating_ip_pool" {
 }
 
 variable "sec_group" {
-  type = "list"
+  type = list(string)
   default = []
 }
 
 variable "sec_group_per_instance" {
-  type = "list"
+  type = list(string)
   default = []
 }
 
@@ -77,7 +77,7 @@ variable "keypair" {
 }
 
 variable "userdata" {
-  type = "list"
+  type = list(string)
   default = [""]
 }
 
