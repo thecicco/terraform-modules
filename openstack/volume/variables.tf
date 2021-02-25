@@ -1,7 +1,7 @@
 variable "name" {}
 variable "size" {}
 variable "instance" {
-  type = "list"
+  type = list(string)
 }
 variable "quantity" {
   default = 1
