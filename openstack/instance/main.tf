@@ -55,15 +55,20 @@ resource "openstack_networking_port_v2" "port_local" {
   network_id = data.openstack_networking_network_v2.instance_network.id
   admin_state_up = "true"
   region = var.region
-  security_group_ids = concat(var.sec_group,list(element(var.sec_group_per_instance,count.index)))
-
   allowed_address_pairs {
     ip_address = var.allowed_address_pairs
   }
-
   lifecycle {
     ignore_changes = all
   }
+}
+
+resource "openstack_networking_port_secgroup_associate_v2" "port_local" {
+  count = var.quantity
+  port_id = openstack_networking_port_v2.port_local[count.index].id
+  enforce = "true"
+  region = var.region
+  security_group_ids = var.sec_group_per_instance
 }
 
 data "external" "image_sync" {
@@ -97,7 +102,7 @@ resource "openstack_compute_instance_v2" "cluster" {
   key_pair = var.keypair
 
   scheduler_hints {
-    group = openstack_compute_servergroup_v2.clusterSG[count.index].id
+    group = openstack_compute_servergroup_v2.clusterSG[0].id
   }
 
   network {

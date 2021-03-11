@@ -1,4 +1,4 @@
-# ECS Terraform Modules
+# Irideos Terraform Modules
 
 ## Example
 
