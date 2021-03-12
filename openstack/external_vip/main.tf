@@ -28,7 +28,7 @@ resource "openstack_networking_port_v2" "port_public" {
   network_id = data.openstack_networking_network_v2.network.id
   admin_state_up = "true"
   region = var.region
-  fixed_ip = {
+  fixed_ip {
     ip_address = element(var.external_vips, count.index)
     subnet_id = data.openstack_networking_subnet_v2.subnet.id
   }
