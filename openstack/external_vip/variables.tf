@@ -11,11 +11,3 @@ variable "network_name" {
 variable "external_vips" {
   type = list(string)
 }
-
-variable "discovery" {
-  default = "false"
-}
-
-variable "discovery_port" {
-  default = "0"
-}
