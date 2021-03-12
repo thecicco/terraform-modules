@@ -8,7 +8,8 @@ variable "region" {
 variable "network_name" {
 }
 
-variable "external_vip" {
+variable "external_vips" {
+  type = list(string)
 }
 
 variable "discovery" {
