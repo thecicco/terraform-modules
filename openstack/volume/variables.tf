@@ -10,7 +10,7 @@ variable "volume_type" {
   default = "Top"
 }
 variable "availability_zones" {
-  default = ["nova"]
+  default = ["it-mil1"]
 }
 variable "region" {
   default = "it-mil1"
