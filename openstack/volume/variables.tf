@@ -9,6 +9,9 @@ variable "quantity" {
 variable "volume_type" {
   default = "Top"
 }
+variable "availability_zones" {
+  default = ["nova"]
+}
 variable "region" {
   default = "it-mil1"
 }
