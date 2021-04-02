@@ -14,6 +14,7 @@ resource "openstack_blockstorage_volume_v2" "volume" {
   size = var.size
   volume_type = var.volume_type
   region = var.region
+  availability_zone = var.availability_zones[count.index % length(var.availability_zones)]
 }
 
 resource "openstack_compute_volume_attach_v2" "va" {
