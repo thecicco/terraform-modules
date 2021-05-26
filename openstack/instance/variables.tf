@@ -69,7 +69,7 @@ variable "sec_group" {
 }
 
 variable "sec_group_per_instance" {
-  type = set(string)
+  type = list(string)
   default = []
 }
 

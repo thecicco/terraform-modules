@@ -68,7 +68,7 @@ resource "openstack_networking_port_secgroup_associate_v2" "port_local" {
   port_id = openstack_networking_port_v2.port_local[count.index].id
   enforce = "true"
   region = var.region
-  security_group_ids = var.sec_group_per_instance
+  security_group_ids = toset(concat(var.sec_group, [var.sec_group_per_instance[count.index]]))
 }
 
 data "external" "image_sync" {
