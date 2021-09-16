@@ -13,9 +13,11 @@ variable "protocol" {
 }
 
 variable "port_range_min" {
+  default = "1"
 }
 
 variable "port_range_max" {
+  default = "65535"
 }
 
 variable "remotes_ips_prefixes" {
